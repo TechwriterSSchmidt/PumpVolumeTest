@@ -264,6 +264,7 @@ void runCalibrationStep() {
   if (!isSensorClear()) return;
 
   Serial.println("\n=== STARTING FAST AUTO-CALIBRATION (Binary Search) ===");
+  Serial.printf("Total Lifetime Strokes: %lu\n", strokeCounter);
   
   if (strokeCounter < 5000) {
       Serial.println("!!! WARNING: BREAK-IN PERIOD NOT COMPLETE !!!");
@@ -500,6 +501,7 @@ void loop() {
       // 1. Toggle ON (External Button)
       if (debouncer.fell()) { 
         Serial.println("External Button -> Starting Continuous Pumping...");
+        Serial.printf("Total Lifetime Strokes: %lu\n", strokeCounter);
         Serial.printf("Using Config: Pulse %lu ms / Pause %lu ms\n", currentPulseDuration, currentPauseDuration);
 
         // Break-in Estimation
