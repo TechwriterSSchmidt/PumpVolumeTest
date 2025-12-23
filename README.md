@@ -36,6 +36,7 @@ This firmware is an automatic analysis tool for 12V metering pumps (chain oilers
 | **Max Jitter** | 5% (0.05) | Maximum allowed instability |
 | **Smart Exit** | 0.8% (0.008) | Jitter threshold for early optimization stop |
 | **Trend Stop** | 2 Steps | Stop if results get worse consecutively |
+| **Repeat Cycles** | 1 | Number of times to run calibration automatically |
 | **Optimization Cap** | 300 ms | Max lower bound for adaptive search |
 | **Safety Margin** | +15% (1.15) | Added to pause time for reliability |
 | **Cool-Down** | 120 s | Rest time between test steps |
@@ -83,6 +84,12 @@ The Serial Monitor will display:
 *   **Raw Values**: The absolute physical limit found.
 *   **Recommended Settings**: The limit + **15% Safety Margin**.
 The system automatically applies these recommended settings for Continuous Mode.
+
+### 6. Multi-Cycle Calibration (Thermal Drift)
+To analyze how the pump behaves as it warms up (Thermal Drift), you can configure `CAL_REPEAT_CYCLES` in `config.h` (e.g., set to 5).
+*   The system will run the full calibration process multiple times automatically.
+*   It enforces a cool-down period between cycles.
+*   **Final Report**: After the last cycle, a summary table is printed to the Serial Monitor, showing the drift in Pulse, Pause, and Flow Ratio over time.
 
 ---
 
