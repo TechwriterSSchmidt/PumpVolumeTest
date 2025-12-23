@@ -423,6 +423,10 @@ void runCalibrationStep() {
         bestPulse = p;
         bestPause = minPauseForThisPulse;
         bestDrops = dropsForMinPause;
+        
+        // Reset Trend Counter because we found a new winner!
+        consecutiveWorseResults = 0;
+
         Serial.println("     (NEW BEST CONFIGURATION!)");
         
         // ADAPTIVE PHYSICS LEARNING
@@ -433,6 +437,16 @@ void runCalibrationStep() {
             currentElasticityRatio = observedRatio * 0.9; 
             Serial.printf("     (Learning: Hose elasticity requires ratio ~%.1f)\n", currentElasticityRatio);
         }
+      } else {
+          // Result is NOT better (Diminishing Returns)
+          consecutiveWorseResults++;
+          Serial.printf("     [Trend] No improvement. Consecutive worse steps: %d/%d\n", consecutiveWorseResults, CAL_MAX_CONSECUTIVE_WORSE_STEPS);
+          
+          if (consecutiveWorseResults >= CAL_MAX_CONSECUTIVE_WORSE_STEPS) {
+              Serial.println("\n>> OPTIMIZATION: Stopping early. Diminishing returns detected.");
+              Serial.println("   Further increasing pulse width is not yielding better stability.");
+              goto finish_calibration;
+          }
       }
 
       // OPTIMIZATION: Update lower bound for next pulse width
@@ -444,28 +458,21 @@ void runCalibrationStep() {
           Serial.printf("     (Optimization: Next search starts at %lu ms)\n", searchLowerBound);
       }
 
-      // INTELLIGENT EARLY EXIT
+      // INTELLIGENT EARLY EXIT (Legacy Check - kept for safety, but Trend Check above is main driver now)
       // If we already have a great result (< 1.0% Jitter) and results are getting worse, stop.
       if (bestJitter < CAL_SMART_EXIT_JITTER_THRESHOLD) {
           if (jitterForMinPause > bestJitter) {
-              consecutiveWorseResults++;
-              Serial.printf("     (Optimization: Result worse than best (%.1f%%). Count: %d)\n", bestJitter*100, consecutiveWorseResults);
-          } else {
-              consecutiveWorseResults = 0;
-          }
-          
-          if (consecutiveWorseResults >= 2) {
-              Serial.println("\n>> OPTIMIZATION: Stopping early. Longer pulses are not improving stability.");
-              break;
+              // Already handled by main trend counter above, but kept for specific threshold logic
           }
       }
 
     } else {
         Serial.println("  => No valid config found for this pulse width.");
         // If we have a good result and suddenly can't find valid configs (e.g. too fast), maybe stop too?
-        if (bestJitter < CAL_SMART_EXIT_JITTER_THRESHOLD) {
-             consecutiveWorseResults++;
-             if (consecutiveWorseResults >= 2) break;
+        consecutiveWorseResults++;
+        if (consecutiveWorseResults >= CAL_MAX_CONSECUTIVE_WORSE_STEPS) {
+             Serial.println("\n>> OPTIMIZATION: Stopping early. Cannot find valid configs anymore.");
+             goto finish_calibration;
         }
     }
     

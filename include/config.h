@@ -78,6 +78,11 @@ const float CAL_ELASTICITY_RATIO = 3.0;
 // and subsequent tests with longer pulses are worse, stop early.
 const float CAL_SMART_EXIT_JITTER_THRESHOLD = 0.008; 
 
+// Diminishing Returns (Trend Stop)
+// Stop calibration if the result does not improve (or gets worse) for X consecutive steps.
+// Example: If set to 2, and 60ms is worse than 55ms, and 65ms is worse than 55ms -> STOP.
+const int CAL_MAX_CONSECUTIVE_WORSE_STEPS = 2;
+
 // Optimization Cap
 // Limits the adaptive search lower bound. Even if a previous step required 600ms pause,
 // we don't force the next step to start at 600ms if this cap is set to 300ms.

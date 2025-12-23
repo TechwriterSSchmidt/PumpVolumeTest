@@ -35,6 +35,7 @@ This firmware is an automatic analysis tool for 12V metering pumps (chain oilers
 | **Test Pulses** | 50 | Number of pulses per test step |
 | **Max Jitter** | 5% (0.05) | Maximum allowed instability |
 | **Smart Exit** | 0.8% (0.008) | Jitter threshold for early optimization stop |
+| **Trend Stop** | 2 Steps | Stop if results get worse consecutively |
 | **Optimization Cap** | 300 ms | Max lower bound for adaptive search |
 | **Safety Margin** | +15% (1.15) | Added to pause time for reliability |
 | **Cool-Down** | 120 s | Rest time between test steps |
@@ -98,6 +99,7 @@ Instead of testing every millisecond, the algorithm:
 *   **Divides & Conquers**: It tests the middle of the range to quickly find limits.
 *   **Learns**: It adapts the search window based on previous results.
 *   **Smart Exit**: If the system finds a highly stable configuration (Jitter < 0.8%) and subsequent tests with longer pulses yield worse results, it stops early.
+*   **Trend Stop**: If increasing the pulse width does not improve stability for 2 consecutive steps (Diminishing Returns), the calibration stops to save time.
 
 ### Safety & Protection
 *   **Auto-Clear**: If a test runs too fast and causes a continuous stream, the system pauses and waits for the sensor to clear.
