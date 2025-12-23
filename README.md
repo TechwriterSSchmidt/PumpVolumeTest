@@ -29,7 +29,7 @@ Use this mode to find the optimal settings where pump cycles and drop formation 
     *   **Pulse Sweep**: Iterates through different pulse durations (e.g., 50ms - 150ms).
     *   **Binary Search**: Uses a smart search algorithm to quickly find the minimum stable pause duration, drastically reducing test time compared to linear searching.
     *   **Quick Fail**: Aborts a test step early if no flow is detected, saving time on invalid configurations.
-    *   **Optimization**: It automatically selects the configuration that offers the **highest flow rate** (shortest cycle time) while maintaining perfect stability (Jitter < 15%).
+    *   **Optimization**: It automatically selects the configuration that offers the **highest flow rate** (shortest cycle time) while maintaining perfect stability (Jitter < 10%).
 *   **Completion**:
     *   **Success**: LED turns Green. The new values are saved for "Continuous Mode".
     *   **Failure**: LED turns Red. Defaults are restored.
