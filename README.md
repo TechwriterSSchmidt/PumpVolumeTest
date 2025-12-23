@@ -1,6 +1,6 @@
-# Pump Volume Test (ESP32-S3)
+# Smart Pump Calibrator (ESP32-S3)
 
-This tool is designed to calibrate and stress-test oil pump systems (e.g., for chain oilers). It automatically determines the optimal **Pulse Duration** and **Pause Duration** to achieve a perfectly synchronized, stable oil flow without resonance.
+This firmware is a sophisticated analysis tool for 12V metering pumps (chain oilers). Unlike simple timers, it uses **Auto-Calibration** and **Stability Analysis** to find the perfect flow settings where the pump and hydraulic system work in resonance.
 
 ## Hardware Setup
 *   **Microcontroller**: ESP32-S3

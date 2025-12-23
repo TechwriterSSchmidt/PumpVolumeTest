@@ -412,7 +412,7 @@ void setup() {
   rgbLed.begin();
   rgbLed.setBrightness(50); // Set brightness (0-255)
   
-  Serial.println("Pump Volume Test Program Started");
+  Serial.println("Smart Pump Calibrator (ESP32-S3)");
   Serial.println("--------------------------------");
   Serial.printf("Flash Size: %d MB\n", ESP.getFlashChipSize() / (1024 * 1024));
   Serial.printf("PSRAM Size: %d MB\n", ESP.getPsramSize() / (1024 * 1024));
