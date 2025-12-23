@@ -157,11 +157,84 @@ float calculateJitter() {
   return stdDev / mean;
 }
 
+// Helper struct for test results
+struct TestResult {
+  bool success;
+  unsigned long drops;
+  float jitter;
+  bool aborted;
+};
+
+// Helper function to test a specific configuration
+TestResult testConfiguration(unsigned long pulse, unsigned long pause) {
+  TestResult result = {false, 0, 0.0f, false};
+  
+  // 1. Priming (Fast - 5 pulses)
+  // We do a mini-prime here to ensure pressure is consistent for this specific timing
+  for (int i = 0; i < 5; i++) {
+      if (checkAbort()) { result.aborted = true; return result; }
+      digitalWrite(PUMP_PIN, HIGH);
+      delay(pulse);
+      digitalWrite(PUMP_PIN, LOW);
+      delay(pause);
+  }
+
+  // 2. Measurement Loop
+  int testPulses = CAL_TEST_PULSES;
+  unsigned long startTotalDrops = dropCount;
+  
+  // Reset Stability Data
+  dropTimestampIndex = 0;
+  
+  for (int i = 0; i < testPulses; i++) {
+    if (checkAbort()) { result.aborted = true; return result; }
+
+    digitalWrite(PUMP_PIN, HIGH);
+    delay(pulse);
+    digitalWrite(PUMP_PIN, LOW);
+    
+    // Wait for pause duration with abort check
+    unsigned long startPause = millis();
+    while (millis() - startPause < pause) {
+       if (checkAbort()) { result.aborted = true; return result; }
+       // Safety Check: Sensor Blocked?
+       if (digitalRead(DROP_SENSOR_PIN) == LOW && (millis() - dropStartTime > 1000)) {
+         Serial.println("\nCRITICAL: Sensor blocked during operation!");
+         result.aborted = true; 
+         return result;
+       }
+       delay(10);
+    }
+    
+    // QUICK FAIL CHECK
+    // If we are halfway through and have 0 drops, this config is garbage.
+    if (i == (testPulses / 2)) {
+        unsigned long currentDrops = dropCount - startTotalDrops;
+        if (currentDrops == 0) {
+            // Serial.print("(Quick Fail: No drops) ");
+            return result; // success is false
+        }
+    }
+  }
+  
+  // Wait a bit for last drop
+  delay(500);
+  
+  result.drops = dropCount - startTotalDrops;
+  result.jitter = calculateJitter();
+  
+  bool countOk = (result.drops >= CAL_TARGET_DROPS_MIN && result.drops <= CAL_TARGET_DROPS_MAX);
+  bool stabilityOk = (result.jitter <= CAL_MAX_JITTER_PERCENT);
+  
+  result.success = countOk && stabilityOk;
+  return result;
+}
+
 void runCalibrationStep() {
   if (!isSensorClear()) return;
 
-  Serial.println("\n=== STARTING ROBUST AUTO-CALIBRATION ===");
-  Serial.printf("Features: Priming (%dx), Stability Check (Max Jitter %.0f%%)\n", CAL_PRIMING_PULSES, CAL_MAX_JITTER_PERCENT * 100);
+  Serial.println("\n=== STARTING FAST AUTO-CALIBRATION (Binary Search) ===");
+  Serial.printf("Features: Binary Search, Quick Fail, Stability Check (Max Jitter %.0f%%)\n", CAL_MAX_JITTER_PERCENT * 100);
   Serial.println("Press BOOT BUTTON to STOP.");
   
   unsigned long bestPulse = 0;
@@ -178,69 +251,45 @@ void runCalibrationStep() {
     unsigned long minPauseForThisPulse = 0;
     unsigned long dropsForMinPause = 0;
     
-    // Search for minimum pause (downwards)
-    for (unsigned long pause = CAL_PAUSE_START; pause >= CAL_PAUSE_MIN; pause -= CAL_PAUSE_STEP) {
-      if (checkAbort()) goto abort_calibration;
-      
-      // 1. Priming
-      if (performPriming(p, pause)) goto abort_calibration;
-      
-      // 2. Measurement Loop
-      int testPulses = CAL_TEST_PULSES;
-      unsigned long startTotalDrops = dropCount;
-      
-      // Reset Stability Data
-      dropTimestampIndex = 0;
-      
-      for (int i = 0; i < testPulses; i++) {
+    // BINARY SEARCH for Minimum Valid Pause
+    unsigned long low = CAL_PAUSE_MIN;
+    unsigned long high = CAL_PAUSE_START;
+    unsigned long candidatePause = 0;
+    
+    while (low <= high) {
         if (checkAbort()) goto abort_calibration;
-
-        digitalWrite(PUMP_PIN, HIGH);
-        delay(p);
-        digitalWrite(PUMP_PIN, LOW);
         
-        // Wait for pause duration with abort check
-        unsigned long startPause = millis();
-        while (millis() - startPause < pause) {
-           if (checkAbort()) goto abort_calibration;
-           // Safety Check: Sensor Blocked?
-           if (digitalRead(DROP_SENSOR_PIN) == LOW && (millis() - dropStartTime > 1000)) {
-             Serial.println("\nCRITICAL: Sensor blocked during operation!");
-             goto abort_calibration;
-           }
-           delay(10);
+        unsigned long mid = low + (high - low) / 2;
+        // Round mid to nearest 5ms step to avoid weird numbers
+        mid = (mid / 5) * 5;
+        if (mid < CAL_PAUSE_MIN) mid = CAL_PAUSE_MIN;
+
+        Serial.printf("  [Range %lu-%lu] Testing Pause %lu ms... ", low, high, mid);
+        
+        TestResult res = testConfiguration(p, mid);
+        
+        if (res.aborted) goto abort_calibration;
+        
+        if (res.success) {
+            Serial.printf("OK (Drops: %lu, Jitter: %.1f%%)\n", res.drops, res.jitter * 100);
+            // This pause works! But can we go lower?
+            candidatePause = mid;
+            dropsForMinPause = res.drops;
+            // Try smaller pause
+            if (mid == 0) break; // prevent underflow
+            if (mid < 5) high = 0; else high = mid - 5; 
+        } else {
+            Serial.printf("FAIL (Drops: %lu, Jitter: %.1f%%)\n", res.drops, res.jitter * 100);
+            // This pause is too short (unstable or bad count). Need longer pause.
+            low = mid + 5;
         }
-      }
-      
-      // Wait a bit for last drop
-      delay(500);
-      
-      unsigned long dropsDetected = dropCount - startTotalDrops;
-      float jitter = calculateJitter();
-      
-      Serial.printf("  -> Pause %lu ms: %lu/%d drops. Jitter: %.1f%% ", pause, dropsDetected, CAL_TEST_PULSES, jitter * 100);
-      
-      bool countOk = (dropsDetected >= CAL_TARGET_DROPS_MIN && dropsDetected <= CAL_TARGET_DROPS_MAX);
-      bool stabilityOk = (jitter <= CAL_MAX_JITTER_PERCENT);
-
-      if (countOk && stabilityOk) {
-        Serial.println("[OK]");
-        minPauseForThisPulse = pause;
-        dropsForMinPause = dropsDetected;
-      } else {
-        if (!countOk) Serial.print("[BAD COUNT] ");
-        if (!stabilityOk) Serial.print("[UNSTABLE] ");
-        Serial.println("");
-        
-        // If we hit instability, the PREVIOUS pause was the limit.
-        break; 
-      }
     }
     
     // Analyze result for this Pulse Width
-    if (minPauseForThisPulse != 0) {
+    if (candidatePause != 0) {
+      minPauseForThisPulse = candidatePause;
       unsigned long currentCycle = p + minPauseForThisPulse;
-      Serial.printf("  => Valid Config: %lu ms / %lu ms (Cycle: %lu ms)\n", p, minPauseForThisPulse, currentCycle);
+      Serial.printf("  => Valid Config Found: %lu ms / %lu ms (Cycle: %lu ms)\n", p, minPauseForThisPulse, currentCycle);
       
       if (currentCycle < minCycleTime) {
         minCycleTime = currentCycle;
@@ -248,6 +297,8 @@ void runCalibrationStep() {
         bestPause = minPauseForThisPulse;
         bestDrops = dropsForMinPause;
       }
+    } else {
+        Serial.println("  => No valid config found for this pulse width.");
     }
   }
   

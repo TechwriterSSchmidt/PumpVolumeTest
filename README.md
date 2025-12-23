@@ -22,12 +22,13 @@ Use this mode to fill the hose with oil or test the pump.
     *   *Note*: If you have successfully run calibration, it will use those optimized values instead.
 *   **Stop**: Press the button again to stop.
 
-### 2. Auto-Calibration
+### 2. Auto-Calibration (Fast Mode)
 Use this mode to find the optimal settings where pump cycles and drop formation are **perfectly synchronized**. The goal is a steady flow with a stable Pulse-to-Drop ratio, avoiding resonance or chaotic dripping.
 *   **Action**: Press the **Boot Button** (GPIO 0).
-*   **Result**: The system runs a comprehensive sweep test (approx. 2-5 minutes).
+*   **Result**: The system runs a comprehensive sweep test.
     *   **Pulse Sweep**: Iterates through different pulse durations (e.g., 50ms - 150ms).
-    *   **Frequency Search**: For each pulse duration, it increases the speed (reduces pause) until instability is detected.
+    *   **Binary Search**: Uses a smart search algorithm to quickly find the minimum stable pause duration, drastically reducing test time compared to linear searching.
+    *   **Quick Fail**: Aborts a test step early if no flow is detected, saving time on invalid configurations.
     *   **Optimization**: It automatically selects the configuration that offers the **highest flow rate** (shortest cycle time) while maintaining perfect stability (Jitter < 15%).
 *   **Completion**:
     *   **Success**: LED turns Green. The new values are saved for "Continuous Mode".
@@ -64,3 +65,7 @@ The Auto-Calibration logic ensures reliability by:
 4.  **Safety Margin**: Adds a **15% buffer** to the calculated pause time to account for temperature or viscosity changes.
 5.  **Stability Analysis**: Calculates the **Jitter** (variation in drop intervals). A setting is only accepted if the flow is steady (Jitter < 15%), ensuring true synchronization.
 6.  **Efficiency**: Calculates and reports the actual **Drops per Stroke** ratio.
+7.  **Search Algorithm (Binary Search)**:
+    *   **Speed**: Uses a "Divide and Conquer" approach to find the limit in ~5 steps instead of ~20.
+    *   **Accuracy**: Assumes physical continuity (if speed X is unstable, X+1 is also unstable).
+    *   **Resolution**: Rounds results to the nearest 5ms. The **Safety Margin** compensates for any minor granularity loss.

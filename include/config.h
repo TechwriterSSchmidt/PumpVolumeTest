@@ -36,15 +36,15 @@ const int DROP_SENSOR_MIN_WIDTH_MS = 4; // Minimum signal width to be considered
 // AUTO-CALIBRATION SETTINGS
 // ============================================================================
 // Pulse Width Search Range (ms)
-const unsigned long CAL_PULSE_MIN = 50;
+const unsigned long CAL_PULSE_MIN = 40;
 const unsigned long CAL_PULSE_MAX = 150;
 const unsigned long CAL_PULSE_STEP = 10;
 
 // Pause Duration Search Range (ms)
-// We search downwards from START to MIN to find the fastest stable speed.
-const unsigned long CAL_PAUSE_START = 1200;
-const unsigned long CAL_PAUSE_MIN = 200;
-const unsigned long CAL_PAUSE_STEP = 100;
+// Binary Search Range: [MIN, MAX]
+const unsigned long CAL_PAUSE_MIN = 50;     // Lower bound for binary search
+const unsigned long CAL_PAUSE_START = 500;  // Upper bound for binary search (Max Pause)
+const unsigned long CAL_PAUSE_STEP = 5;     // Resolution (not strictly used in binary search but good for reference)
 
 // Calibration Logic
 const int CAL_PRIMING_PULSES = 10;      // Pulses to pressurize hose before measuring
@@ -54,9 +54,9 @@ const int CAL_TARGET_DROPS_MAX = 52;    // Maximum acceptable drops for 50 pulse
 
 // Stability Criteria
 // Maximum allowed jitter (Standard Deviation / Average Interval).
-// 0.15 = The drop intervals must not deviate by more than 15% from the average.
+// 0.10 = The drop intervals must not deviate by more than 10% from the average.
 // Lower is stricter.
-const float CAL_MAX_JITTER_PERCENT = 0.15;
+const float CAL_MAX_JITTER_PERCENT = 0.10;
 
 // Safety Factor
 // Added to the experimentally found minimum pause to ensure reliability.
