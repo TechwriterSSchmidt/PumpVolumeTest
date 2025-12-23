@@ -371,6 +371,7 @@ void runCalibrationStep() {
     if (high < low) high = low + CAL_PAUSE_STEP;
 
     unsigned long candidatePause = 0;
+    bool saturationDetected = false;
     
     while (low <= high) {
         if (checkAbort()) goto abort_calibration;
@@ -401,8 +402,8 @@ void runCalibrationStep() {
             // Increasing pulse width further is pointless.
             if (res.drops > CAL_TARGET_DROPS_MAX) {
                 Serial.printf("FAIL (Drops: %lu) -> NOZZLE SATURATION (Splatter)\n", res.drops);
-                Serial.println("   => Stopping Calibration: Physical limit reached.");
-                goto finish_calibration; // Stop the entire calibration process
+                saturationDetected = true;
+                break; // Stop search for this pulse, but allow saving of previous valid results
             }
 
             Serial.printf("FAIL (Drops: %lu, Jitter: %.1f%%)\n", res.drops, res.jitter * 100);
@@ -488,6 +489,11 @@ void runCalibrationStep() {
              Serial.println("\n>> OPTIMIZATION: Stopping early. Cannot find valid configs anymore.");
              goto finish_calibration;
         }
+    }
+
+    if (saturationDetected) {
+        Serial.println("   => Stopping Calibration: Physical limit reached.");
+        goto finish_calibration;
     }
     
     completedSteps++;
