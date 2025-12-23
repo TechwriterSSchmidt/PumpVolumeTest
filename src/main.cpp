@@ -267,6 +267,10 @@ void runCalibrationStep() {
   unsigned long bestDrops = 0;
   unsigned long minCycleTime = 99999;
   
+  // Optimization: Track the lowest valid pause found so far.
+  // A stronger pulse (longer duration) will generally require at least as much pause as a weaker one.
+  unsigned long searchLowerBound = CAL_PAUSE_MIN;
+
   // Iterate through reasonable pulse widths
   for (unsigned long p = CAL_PULSE_MIN; p <= CAL_PULSE_MAX; p += CAL_PULSE_STEP) {
     if (checkAbort()) goto abort_calibration;
@@ -277,7 +281,7 @@ void runCalibrationStep() {
     unsigned long dropsForMinPause = 0;
     
     // BINARY SEARCH for Minimum Valid Pause
-    unsigned long low = CAL_PAUSE_MIN;
+    unsigned long low = searchLowerBound;
     unsigned long high = CAL_PAUSE_START;
     unsigned long candidatePause = 0;
     
@@ -322,6 +326,14 @@ void runCalibrationStep() {
         bestPause = minPauseForThisPulse;
         bestDrops = dropsForMinPause;
       }
+
+      // OPTIMIZATION: Update lower bound for next pulse width
+      // If 40ms pulse needs 200ms pause, 50ms pulse will likely need >= 200ms.
+      if (minPauseForThisPulse > searchLowerBound) {
+          searchLowerBound = minPauseForThisPulse;
+          Serial.printf("     (Optimization: Next search starts at %lu ms)\n", searchLowerBound);
+      }
+
     } else {
         Serial.println("  => No valid config found for this pulse width.");
     }
