@@ -1,11 +1,13 @@
 #include <Arduino.h>
 #include <Adafruit_NeoPixel.h>
 #include <Bounce2.h>
+#include <Preferences.h>
 #include "config.h"
 
 Adafruit_NeoPixel rgbLed(NUM_LEDS, RGB_LED_PIN, NEO_GRB + NEO_KHZ800);
 Bounce debouncer = Bounce();
 Bounce bootDebouncer = Bounce();
+Preferences preferences;
 
 // States
 enum SystemState {
@@ -373,6 +375,8 @@ void runCalibrationStep() {
       // If 40ms pulse needs 200ms pause, 50ms pulse will likely need >= 200ms.
       if (minPauseForThisPulse > searchLowerBound) {
           searchLowerBound = minPauseForThisPulse;
+          // Cap optimization at 450ms (User Request: values > 450ms are always valid, don't force search higher)
+          if (searchLowerBound > 450) searchLowerBound = 450;
           Serial.printf("     (Optimization: Next search starts at %lu ms)\n", searchLowerBound);
       }
 
@@ -451,8 +455,13 @@ void setup() {
 
   // Initialize RGB LED
   rgbLed.begin();
-  rgbLed.setBrightness(50); // Set brightness (0-255)
-  
+  // Initialize Preferences
+  preferences.begin("pump-stats", false);
+  strokeCounter = preferences.getULong("strokes", 0);
+
+  Serial.println("Smart Pump Calibrator (ESP32-S3)");
+  Serial.println("--------------------------------");
+  Serial.printf("Total Lifetime Strokes: %lu\n", strokeCounter
   Serial.println("Smart Pump Calibrator (ESP32-S3)");
   Serial.println("--------------------------------");
   Serial.printf("Flash Size: %d MB\n", ESP.getFlashChipSize() / (1024 * 1024));
@@ -479,6 +488,16 @@ void loop() {
       if (debouncer.fell()) { 
         Serial.println("External Button -> Starting Continuous Pumping...");
         Serial.printf("Using Config: Pulse %lu ms / Pause %lu ms\n", currentPulseDuration, currentPauseDuration);
+
+        // Break-in Estimation
+        if (strokeCounter < 5000) {
+            unsigned long remaining = 5000 - strokeCounter;
+            unsigned long cycleTime = currentPulseDuration + currentPauseDuration;
+            unsigned long totalSeconds = (remaining * cycleTime) / 1000;
+            unsigned long minutes = totalSeconds / 60;
+            Serial.printf("Break-in Progress: %lu/5000. Est. Remaining Time: %lu min\n", strokeCounter, minutes);
+        }
+
         currentState = STATE_PUMPING;
         
         // Start first pulse immediately
@@ -519,6 +538,8 @@ void loop() {
       if (debouncer.fell()) {
         Serial.println("External Button -> Stopping Pump...");
         digitalWrite(PUMP_PIN, LOW);
+        preferences.putULong("strokes", strokeCounter); // Save on stop
+        Serial.println("Stats saved.");
         currentState = STATE_READY;
         setStatusColor(0, 255, 0); // Green = Ready
         Serial.println("State: READY (Green).");
@@ -538,7 +559,24 @@ void loop() {
             lastPulseSwitchTime = currentMillis;
             
             strokeCounter++;
+            
+            // Periodic Save & Status
+            if (strokeCounter % 100 == 0) {
+                preferences.putULong("strokes", strokeCounter);
+                if (strokeCounter < 5000) {
+                     unsigned long remaining = 5000 - strokeCounter;
+                     unsigned long cycleTime = currentPulseDuration + currentPauseDuration;
+                     unsigned long minutes = ((remaining * cycleTime) / 1000) / 60;
+                     Serial.printf("Break-in: %lu/5000 (%lu min remaining)\n", strokeCounter, minutes);
+                }
+            }
+
             Serial.printf("Stroke Count: %lu\n", strokeCounter);
+            
+            if (strokeCounter == 5000) {
+                Serial.println("\n*** BREAK-IN PERIOD COMPLETE (5000 Strokes) ***");
+                Serial.println("The pump is now mechanically stable and ready for calibration.");
+            }
           }
         }
       }
