@@ -34,7 +34,7 @@ enum SystemState {
 
 SystemState currentState = STATE_READY;
 unsigned long pumpStartTime = 0;
-const unsigned long PUMP_DURATION = 5000; // 5 seconds
+// const unsigned long PUMP_DURATION = 5000; // Removed for continuous mode
 
 // Pulse Configuration
 const unsigned long PULSE_DURATION_MS = 150;
@@ -76,7 +76,7 @@ void setup() {
   Serial.printf("PSRAM Size: %d MB\n", ESP.getPsramSize() / (1024 * 1024));
   Serial.println("--------------------------------");
   Serial.println("State: READY (Green).");
-  Serial.println("  - External Button (GPIO 5): Start 5s Test Cycle");
+  Serial.println("  - External Button (GPIO 5): Toggle Continuous Pumping (ON/OFF)");
   Serial.println("  - Boot Button (GPIO 0): Single Pump Stroke");
 
   // Initial State
@@ -91,11 +91,10 @@ void loop() {
     case STATE_READY:
       // Green LED is already set
       
-      // 1. Test Cycle (External Button)
+      // 1. Toggle ON (External Button)
       if (debouncer.fell()) { 
-        Serial.println("External Button -> Starting 5s Test Cycle...");
+        Serial.println("External Button -> Starting Continuous Pumping...");
         currentState = STATE_PUMPING;
-        pumpStartTime = millis();
         
         // Start first pulse immediately
         digitalWrite(PUMP_PIN, HIGH);
@@ -132,15 +131,15 @@ void loop() {
       break;
 
     case STATE_PUMPING:
-      // Check total duration
-      if (millis() - pumpStartTime >= PUMP_DURATION) {
-        Serial.println("Time limit reached -> Stopping Pump...");
+      // Check for Stop (External Button)
+      if (debouncer.fell()) {
+        Serial.println("External Button -> Stopping Pump...");
         digitalWrite(PUMP_PIN, LOW);
         currentState = STATE_STOPPED;
         setStatusColor(255, 0, 0); // Red = Pump Stopped
-        Serial.println("State: STOPPED (Red). Press external button to reset.");
+        Serial.println("State: STOPPED (Red). Press external button to restart.");
       } else {
-        // Handle Pulsing Logic
+        // Handle Pulsing Logic (Continuous)
         unsigned long currentMillis = millis();
         if (isPulseHigh) {
           if (currentMillis - lastPulseSwitchTime >= PULSE_DURATION_MS) {
@@ -162,11 +161,33 @@ void loop() {
       break;
 
     case STATE_STOPPED:
-      // Wait for button to reset to READY
+      // Toggle ON (External Button)
       if (debouncer.fell()) {
-        Serial.println("Button Pressed -> Resetting to READY...");
-        currentState = STATE_READY;
-        setStatusColor(0, 255, 0); // Green = Ready
+        Serial.println("External Button -> Restarting Continuous Pumping...");
+        currentState = STATE_PUMPING;
+        
+        // Start first pulse immediately
+        digitalWrite(PUMP_PIN, HIGH);
+        isPulseHigh = true;
+        lastPulseSwitchTime = millis();
+        
+        strokeCounter++;
+        Serial.printf("Stroke Count: %lu\n", strokeCounter);
+        
+        setStatusColor(255, 255, 0); // Yellow = Pump Active
+      }
+      
+      // Allow Single Stroke from Stopped state (Returns to Ready/Green)
+      if (bootDebouncer.fell()) {
+        Serial.println("Boot Button -> Single Stroke...");
+        currentState = STATE_SINGLE_PULSE;
+        pumpStartTime = millis();
+        
+        digitalWrite(PUMP_PIN, HIGH);
+        strokeCounter++;
+        Serial.printf("Stroke Count: %lu\n", strokeCounter);
+        
+        setStatusColor(0, 0, 255); // Blue
       }
       break;
   }
