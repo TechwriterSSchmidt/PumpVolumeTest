@@ -3,28 +3,6 @@
 #include <Bounce2.h>
 #include "config.h"
 
-// Define the pin connected to the MOSFET gate
-// Based on the provided pinout image:
-// GPIO 4 is on the LEFT side, 4th pin from the top (after 3V3, 3V3, RST)
-const int PUMP_PIN = 4; 
-
-// External Button Pin
-// Connect button between GPIO 5 and GND
-const int BUTTON_PIN = 5;
-
-// Boot Button (Onboard)
-const int BOOT_BUTTON_PIN = 0;
-
-// Drop Sensor Pin (IR Obstacle Sensor)
-// Connect DO to GPIO 6
-const int DROP_SENSOR_PIN = 6;
-
-// Onboard WS2812 RGB LED
-// Usually GPIO 48 on ESP32-S3 DevKitC-1 (N16R8) boards.
-// If it doesn't work, try GPIO 38.
-const int RGB_LED_PIN = 48; 
-const int NUM_LEDS = 1;
-
 Adafruit_NeoPixel rgbLed(NUM_LEDS, RGB_LED_PIN, NEO_GRB + NEO_KHZ800);
 Bounce debouncer = Bounce();
 Bounce bootDebouncer = Bounce();
@@ -33,17 +11,18 @@ Bounce bootDebouncer = Bounce();
 enum SystemState {
   STATE_READY,
   STATE_PUMPING,
-  STATE_SINGLE_PULSE,
-  STATE_STOPPED,
   STATE_CALIBRATION
 };
 
 SystemState currentState = STATE_READY;
 unsigned long pumpStartTime = 0;
-// const unsigned long PUMP_DURATION = 5000; // Removed for continuous mode
 
 unsigned long lastPulseSwitchTime = 0;
 bool isPulseHigh = false;
+
+// Operational Variables (Default: Bleeding Mode)
+unsigned long currentPulseDuration = DEFAULT_BLEED_PULSE_MS;
+unsigned long currentPauseDuration = DEFAULT_BLEED_PAUSE_MS;
 
 // Statistics
 unsigned long strokeCounter = 0;
@@ -51,6 +30,7 @@ unsigned long strokeCounter = 0;
 // Drop Detection Variables
 volatile unsigned long dropCount = 0;
 volatile unsigned long lastDropTime = 0;
+volatile unsigned long dropStartTime = 0; // For measuring signal width
 unsigned long lastProcessedDropCount = 0;
 
 // Calibration Variables
@@ -61,12 +41,24 @@ int calPulseCount = 0;
 int calDropCount = 0;
 
 // Interrupt Service Routine for Drop Sensor
+// Uses CHANGE to measure signal width and filter noise
 void IRAM_ATTR onDropDetected() {
+  int pinState = digitalRead(DROP_SENSOR_PIN);
   unsigned long now = millis();
-  // Simple debounce (20ms) to avoid multiple counts for one drop
-  if (now - lastDropTime > 20) {
-    dropCount++;
-    lastDropTime = now;
+
+  if (pinState == LOW) {
+    // Falling Edge: Object entered sensor (Active LOW)
+    dropStartTime = now;
+  } else {
+    // Rising Edge: Object left sensor
+    unsigned long duration = now - dropStartTime;
+    
+    // Filter 1: Minimum Width (filters electrical noise spikes < 4ms)
+    // Filter 2: Debounce/Refractory Period (filters double-triggering on same drop)
+    if (duration >= DROP_SENSOR_MIN_WIDTH_MS && (now - lastDropTime > DROP_SENSOR_DEBOUNCE_MS)) {
+      dropCount++;
+      lastDropTime = now;
+    }
   }
 }
 
@@ -76,60 +68,113 @@ void setStatusColor(uint8_t r, uint8_t g, uint8_t b) {
   rgbLed.show();
 }
 
+// Helper to check for abort (Boot Button)
+bool checkAbort() {
+  bootDebouncer.update();
+  if (bootDebouncer.fell()) {
+    Serial.println("\n!!! ABORTED BY USER !!!");
+    return true;
+  }
+  return false;
+}
+
+// Helper: Check if sensor is clear
+bool isSensorClear() {
+  if (digitalRead(DROP_SENSOR_PIN) == LOW) { // LOW = Blocked
+    Serial.println("\nERROR: Sensor is blocked! Clean sensor or check alignment.");
+    setStatusColor(255, 0, 0); // Red
+    return false;
+  }
+  return true;
+}
+
 // Helper to perform priming pulses (not counted)
-void performPriming(int pulseMs, int pauseMs) {
-  Serial.print("  [Priming 5 pulses]... ");
-  for (int i = 0; i < 5; i++) {
+// Returns true if aborted
+bool performPriming(int pulseMs, int pauseMs) {
+  Serial.printf("  [Priming %d pulses]... ", CAL_PRIMING_PULSES);
+  unsigned long startDrops = dropCount;
+
+  for (int i = 0; i < CAL_PRIMING_PULSES; i++) {
+    if (checkAbort()) return true;
     digitalWrite(PUMP_PIN, HIGH);
     delay(pulseMs);
     digitalWrite(PUMP_PIN, LOW);
-    delay(pauseMs);
+    
+    // Break down pause into small checks
+    unsigned long startPause = millis();
+    while (millis() - startPause < (unsigned long)pauseMs) {
+      if (checkAbort()) return true;
+      delay(10);
+    }
   }
-  Serial.println("Done.");
+  
+  unsigned long primingDrops = dropCount - startDrops;
+  Serial.printf("Done. (Detected %lu drops)\n", primingDrops);
+  return false;
 }
 
 void runCalibrationStep() {
+  if (!isSensorClear()) return;
+
   Serial.println("\n=== STARTING ROBUST AUTO-CALIBRATION ===");
-  Serial.println("Features: Priming (5x), Cycle Optimization, Safety Margin (+15%)");
+  Serial.printf("Features: Priming (%dx), Cycle Optimization, Safety Margin (+%.0f%%)\n", CAL_PRIMING_PULSES, (CAL_SAFETY_MARGIN_FACTOR - 1.0) * 100);
+  Serial.println("Press BOOT BUTTON to STOP.");
   
   unsigned long bestPulse = 0;
   unsigned long bestPause = 0;
+  unsigned long bestDrops = 0;
   unsigned long minCycleTime = 99999;
   
   // Iterate through reasonable pulse widths
-  for (unsigned long p = 50; p <= 150; p += 10) {
+  for (unsigned long p = CAL_PULSE_MIN; p <= CAL_PULSE_MAX; p += CAL_PULSE_STEP) {
+    if (checkAbort()) goto abort_calibration;
+
     Serial.printf("\nTesting Pulse Width: %lu ms\n", p);
     
     unsigned long minPauseForThisPulse = 0;
+    unsigned long dropsForMinPause = 0;
     
-    // Search for minimum pause (downwards from 1200ms)
-    for (unsigned long pause = 1200; pause >= 200; pause -= 100) {
+    // Search for minimum pause (downwards)
+    for (unsigned long pause = CAL_PAUSE_START; pause >= CAL_PAUSE_MIN; pause -= CAL_PAUSE_STEP) {
+      if (checkAbort()) goto abort_calibration;
       
       // 1. Priming
-      performPriming(p, pause);
+      if (performPriming(p, pause)) goto abort_calibration;
       
-      // 2. Measurement Loop (50 drops)
-      int testPulses = 50;
+      // 2. Measurement Loop
+      int testPulses = CAL_TEST_PULSES;
       unsigned long startTotalDrops = dropCount;
       
       for (int i = 0; i < testPulses; i++) {
+        if (checkAbort()) goto abort_calibration;
+
         digitalWrite(PUMP_PIN, HIGH);
         delay(p);
         digitalWrite(PUMP_PIN, LOW);
         
-        // Wait for pause duration
-        delay(pause);
+        // Wait for pause duration with abort check
+        unsigned long startPause = millis();
+        while (millis() - startPause < pause) {
+           if (checkAbort()) goto abort_calibration;
+           // Safety Check: Sensor Blocked?
+           if (digitalRead(DROP_SENSOR_PIN) == LOW && (millis() - dropStartTime > 1000)) {
+             Serial.println("\nCRITICAL: Sensor blocked during operation!");
+             goto abort_calibration;
+           }
+           delay(10);
+        }
       }
       
       // Wait a bit for last drop
       delay(500);
       
       unsigned long dropsDetected = dropCount - startTotalDrops;
-      Serial.printf("  -> Pause %lu ms: %lu/50 drops. ", pause, dropsDetected);
+      Serial.printf("  -> Pause %lu ms: %lu/%d drops. ", pause, dropsDetected, CAL_TEST_PULSES);
       
-      if (dropsDetected >= 48 && dropsDetected <= 52) {
+      if (dropsDetected >= CAL_TARGET_DROPS_MIN && dropsDetected <= CAL_TARGET_DROPS_MAX) {
         Serial.println("OK.");
         minPauseForThisPulse = pause;
+        dropsForMinPause = dropsDetected;
       } else {
         Serial.println("UNSTABLE.");
         // If we hit instability, the PREVIOUS pause was the limit.
@@ -147,6 +192,7 @@ void runCalibrationStep() {
         minCycleTime = currentCycle;
         bestPulse = p;
         bestPause = minPauseForThisPulse;
+        bestDrops = dropsForMinPause;
       }
     }
   }
@@ -162,20 +208,37 @@ void runCalibrationStep() {
     Serial.printf("  Cycle: %lu ms\n", minCycleTime);
     
     // Safety Margin Calculation
-    unsigned long safePause = (unsigned long)(bestPause * 1.15); // +15%
+    unsigned long safePause = (unsigned long)(bestPause * CAL_SAFETY_MARGIN_FACTOR); 
     unsigned long safeCycle = bestPulse + safePause;
+    float dropsPerStroke = (float)bestDrops / (float)CAL_TEST_PULSES;
     
     Serial.println("------------------------------------------");
     Serial.printf("RECOMMENDED SETTINGS (Robust Operation):\n");
     Serial.printf("  Pulse: %lu ms\n", bestPulse);
-    Serial.printf("  Pause: %lu ms  (includes +15%% safety margin)\n", safePause);
+    Serial.printf("  Pause: %lu ms  (includes +%.0f%% safety margin)\n", safePause, (CAL_SAFETY_MARGIN_FACTOR - 1.0) * 100);
     Serial.printf("  Cycle: %lu ms\n", safeCycle);
+    Serial.printf("  Ratio: %.2f Drops/Stroke (Measured: %lu drops / %d pulses)\n", dropsPerStroke, bestDrops, CAL_TEST_PULSES);
+
+    // Apply values
+    currentPulseDuration = bestPulse;
+    currentPauseDuration = safePause;
+    Serial.println(">> SETTINGS APPLIED FOR CONTINUOUS MODE.");
+
   } else {
     Serial.println("FAILURE: No stable configuration found.");
+    Serial.printf(">> Reverting to defaults (Bleeding Mode: %lu/%lu).\n", DEFAULT_BLEED_PULSE_MS, DEFAULT_BLEED_PAUSE_MS);
+    currentPulseDuration = DEFAULT_BLEED_PULSE_MS;
+    currentPauseDuration = DEFAULT_BLEED_PAUSE_MS;
     setStatusColor(255, 0, 0); // Red
   }
   Serial.println("==========================================");
   
+  currentState = STATE_READY;
+  setStatusColor(0, 255, 0); // Green
+  return;
+
+abort_calibration:
+  Serial.println("Calibration Aborted.");
   currentState = STATE_READY;
   setStatusColor(0, 255, 0); // Green
 }
@@ -189,16 +252,16 @@ void setup() {
 
   // Initialize Button with Pullup
   debouncer.attach(BUTTON_PIN, INPUT_PULLUP);
-  debouncer.interval(25); // 25ms debounce time
+  debouncer.interval(BUTTON_DEBOUNCE_MS); 
 
   // Initialize Boot Button
   bootDebouncer.attach(BOOT_BUTTON_PIN, INPUT_PULLUP);
-  bootDebouncer.interval(25);
+  bootDebouncer.interval(BUTTON_DEBOUNCE_MS);
 
   // Initialize Drop Sensor
   // Sensor Output is usually Active LOW (LOW when obstacle detected)
   pinMode(DROP_SENSOR_PIN, INPUT_PULLUP); 
-  attachInterrupt(digitalPinToInterrupt(DROP_SENSOR_PIN), onDropDetected, FALLING);
+  attachInterrupt(digitalPinToInterrupt(DROP_SENSOR_PIN), onDropDetected, CHANGE);
 
   // Initialize RGB LED
   rgbLed.begin();
@@ -211,7 +274,8 @@ void setup() {
   Serial.println("--------------------------------");
   Serial.println("State: READY (Green).");
   Serial.println("  - External Button (GPIO 5): Toggle Continuous Pumping (ON/OFF)");
-  Serial.println("  - Boot Button (GPIO 0): Start AUTO-CALIBRATION");
+  Serial.println("  - Boot Button (GPIO 0): Start/Stop AUTO-CALIBRATION");
+  Serial.printf("  - Current Config: Pulse %lu ms / Pause %lu ms\n", currentPulseDuration, currentPauseDuration);
 
   // Initial State
   setStatusColor(0, 255, 0); // Green = Ready
@@ -228,6 +292,7 @@ void loop() {
       // 1. Toggle ON (External Button)
       if (debouncer.fell()) { 
         Serial.println("External Button -> Starting Continuous Pumping...");
+        Serial.printf("Using Config: Pulse %lu ms / Pause %lu ms\n", currentPulseDuration, currentPauseDuration);
         currentState = STATE_PUMPING;
         
         // Start first pulse immediately
@@ -251,16 +316,11 @@ void loop() {
       break;
 
     case STATE_CALIBRATION:
-      // Logic is handled in runCalibrationStep() which is blocking for now
-      break;
-
-    case STATE_SINGLE_PULSE:
-      if (millis() - pumpStartTime >= PULSE_DURATION_MS) {
-        digitalWrite(PUMP_PIN, LOW);
-        currentState = STATE_READY;
-        setStatusColor(0, 255, 0); // Back to Green
-        Serial.println("Single Stroke Complete.");
-      }
+      // Logic is handled in runCalibrationStep() which is blocking.
+      // If we return here, it means calibration finished or aborted.
+      // Ensure we go back to READY if not already set.
+      currentState = STATE_READY;
+      setStatusColor(0, 255, 0);
       break;
 
     case STATE_PUMPING:
@@ -268,20 +328,20 @@ void loop() {
       if (debouncer.fell()) {
         Serial.println("External Button -> Stopping Pump...");
         digitalWrite(PUMP_PIN, LOW);
-        currentState = STATE_STOPPED;
-        setStatusColor(255, 0, 0); // Red = Pump Stopped
-        Serial.println("State: STOPPED (Red). Press external button to restart.");
+        currentState = STATE_READY;
+        setStatusColor(0, 255, 0); // Green = Ready
+        Serial.println("State: READY (Green).");
       } else {
         // Handle Pulsing Logic (Continuous)
         unsigned long currentMillis = millis();
         if (isPulseHigh) {
-          if (currentMillis - lastPulseSwitchTime >= PULSE_DURATION_MS) {
+          if (currentMillis - lastPulseSwitchTime >= currentPulseDuration) {
             digitalWrite(PUMP_PIN, LOW);
             isPulseHigh = false;
             lastPulseSwitchTime = currentMillis;
           }
         } else {
-          if (currentMillis - lastPulseSwitchTime >= PAUSE_DURATION_MS) {
+          if (currentMillis - lastPulseSwitchTime >= currentPauseDuration) {
             digitalWrite(PUMP_PIN, HIGH);
             isPulseHigh = true;
             lastPulseSwitchTime = currentMillis;
@@ -293,35 +353,8 @@ void loop() {
       }
       break;
 
-    case STATE_STOPPED:
-      // Toggle ON (External Button)
-      if (debouncer.fell()) {
-        Serial.println("External Button -> Restarting Continuous Pumping...");
-        currentState = STATE_PUMPING;
-        
-        // Start first pulse immediately
-        digitalWrite(PUMP_PIN, HIGH);
-        isPulseHigh = true;
-        lastPulseSwitchTime = millis();
-        
-        strokeCounter++;
-        Serial.printf("Stroke Count: %lu\n", strokeCounter);
-        
-        setStatusColor(255, 255, 0); // Yellow = Pump Active
-      }
-      
-      // Allow Single Stroke from Stopped state (Returns to Ready/Green)
-      if (bootDebouncer.fell()) {
-        Serial.println("Boot Button -> Single Stroke...");
-        currentState = STATE_SINGLE_PULSE;
-        pumpStartTime = millis();
-        
-        digitalWrite(PUMP_PIN, HIGH);
-        strokeCounter++;
-        Serial.printf("Stroke Count: %lu\n", strokeCounter);
-        
-        setStatusColor(0, 0, 255); // Blue
-      }
+    default:
+      currentState = STATE_READY;
       break;
   }
   
