@@ -51,6 +51,20 @@ int calStep = 0;
 int calPulseCount = 0;
 int calDropCount = 0;
 
+// Result Storage for Multi-Cycle Calibration
+struct CalibrationResult {
+    int cycleNumber;
+    unsigned long pulse;
+    unsigned long pause;
+    unsigned long cycleTime;
+    float elasticityRatio;
+    float dropsPerStroke;
+    unsigned long duration;
+};
+
+CalibrationResult cycleResults[10]; // Store up to 10 cycles
+int completedCycles = 0;
+
 // Interrupt Service Routine for Drop Sensor
 // Uses CHANGE to measure signal width and filter noise
 void IRAM_ATTR onDropDetected() {
@@ -516,6 +530,18 @@ finish_calibration:
     currentPauseDuration = safePause;
     Serial.println(">> SETTINGS APPLIED FOR CONTINUOUS MODE.");
 
+    // Store Result for Multi-Cycle Report
+    if (completedCycles < 10) {
+        cycleResults[completedCycles].cycleNumber = completedCycles + 1;
+        cycleResults[completedCycles].pulse = bestPulse;
+        cycleResults[completedCycles].pause = bestPause;
+        cycleResults[completedCycles].cycleTime = minCycleTime;
+        cycleResults[completedCycles].elasticityRatio = currentElasticityRatio;
+        cycleResults[completedCycles].dropsPerStroke = dropsPerStroke;
+        cycleResults[completedCycles].duration = millis() - calibrationStartTime;
+        completedCycles++;
+    }
+
   } else {
     Serial.println("FAILURE: No stable configuration found.");
     Serial.printf(">> Reverting to defaults (Bleeding Mode: %lu/%lu).\n", DEFAULT_BLEED_PULSE_MS, DEFAULT_BLEED_PAUSE_MS);
@@ -525,14 +551,13 @@ finish_calibration:
   }
   Serial.println("==========================================");
   
-  currentState = STATE_READY;
-  setStatusColor(0, 255, 0); // Green
+  // Do NOT reset state to READY here, let the loop handle it
   return;
 
 abort_calibration:
   Serial.println("Calibration Aborted.");
   preferences.putULong("strokes", strokeCounter); // Save progress
-  currentState = STATE_READY;
+  currentState = STATE_READY; // Abort always goes to READY
   setStatusColor(0, 255, 0); // Green
 }
 
@@ -660,7 +685,55 @@ void loop() {
         Serial.println("Boot Button -> Starting Calibration...");
         currentState = STATE_CALIBRATION;
         setStatusColor(0, 0, 255); // Blue
-        runCalibrationStep();
+        
+        // Reset Cycle Counter
+        completedCycles = 0;
+        
+        // Run the configured number of cycles
+        for (int i = 0; i < CAL_REPEAT_CYCLES; i++) {
+            Serial.printf("\n>>> STARTING CALIBRATION CYCLE %d / %d <<<\n", i + 1, CAL_REPEAT_CYCLES);
+            runCalibrationStep();
+            
+            // Check if aborted inside runCalibrationStep (it sets state to READY)
+            if (currentState == STATE_READY) break;
+            
+            // Cool-down between full cycles if not the last one
+            if (i < CAL_REPEAT_CYCLES - 1) {
+                Serial.printf("\n>>> CYCLE %d COMPLETE. Cooling down for %lu seconds before next cycle...\n", i + 1, CAL_COOLDOWN_MS / 1000);
+                unsigned long steps = CAL_COOLDOWN_MS / 100;
+                for(unsigned long w=0; w<steps; w++) { 
+                    if (checkAbort()) {
+                        currentState = STATE_READY;
+                        break;
+                    }
+                    delay(100);
+                }
+                if (currentState == STATE_READY) break;
+            }
+        }
+        
+        // Final Report after all cycles
+        if (completedCycles > 0) {
+            Serial.println("\n\n##########################################");
+            Serial.println("       MULTI-CYCLE CALIBRATION REPORT");
+            Serial.println("##########################################");
+            Serial.println("Cycle | Pulse | Pause | Ratio | Duration");
+            Serial.println("------+-------+-------+-------+----------");
+            for (int i = 0; i < completedCycles; i++) {
+                unsigned long min = cycleResults[i].duration / 60000;
+                unsigned long sec = (cycleResults[i].duration % 60000) / 1000;
+                Serial.printf("  %d   | %lu ms | %lu ms |  %.1f  | %lu min %lu s\n", 
+                    cycleResults[i].cycleNumber, 
+                    cycleResults[i].pulse, 
+                    cycleResults[i].pause, 
+                    cycleResults[i].elasticityRatio,
+                    min, sec);
+            }
+            Serial.println("##########################################\n");
+        }
+        
+        currentState = STATE_READY;
+        setStatusColor(0, 255, 0); // Green
       }
       break;
 

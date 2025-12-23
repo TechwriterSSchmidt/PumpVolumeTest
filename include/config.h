@@ -83,6 +83,11 @@ const float CAL_SMART_EXIT_JITTER_THRESHOLD = 0.008;
 // Example: If set to 2, and 60ms is worse than 55ms, and 65ms is worse than 55ms -> STOP.
 const int CAL_MAX_CONSECUTIVE_WORSE_STEPS = 2;
 
+// Calibration Cycles
+// How many times to repeat the full calibration process automatically.
+// Useful to analyze thermal drift (Cold vs. Warm performance).
+const int CAL_REPEAT_CYCLES = 5;
+
 // Optimization Cap
 // Limits the adaptive search lower bound. Even if a previous step required 600ms pause,
 // we don't force the next step to start at 600ms if this cap is set to 300ms.
