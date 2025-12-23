@@ -32,6 +32,10 @@ const int BUTTON_DEBOUNCE_MS = 25;
 const int DROP_SENSOR_DEBOUNCE_MS = 50; // Increased to filter multiple triggers
 const int DROP_SENSOR_MIN_WIDTH_MS = 4; // Minimum signal width to be considered a valid drop (filters noise spikes)
 
+// Break-in Period
+// Number of strokes required before the pump is considered mechanically stable.
+const unsigned long CAL_BREAK_IN_STROKES = 7500;
+
 // ============================================================================
 // AUTO-CALIBRATION SETTINGS
 // ============================================================================

@@ -274,9 +274,9 @@ void runCalibrationStep() {
   Serial.println("\n=== STARTING FAST AUTO-CALIBRATION (Binary Search) ===");
   Serial.printf("Total Lifetime Strokes: %lu\n", strokeCounter);
   
-  if (strokeCounter < 5000) {
+  if (strokeCounter < CAL_BREAK_IN_STROKES) {
       Serial.println("!!! WARNING: BREAK-IN PERIOD NOT COMPLETE !!!");
-      Serial.printf("Calibration results may drift. Current Strokes: %lu/5000\n", strokeCounter);
+      Serial.printf("Calibration results may drift. Current Strokes: %lu/%lu\n", strokeCounter, CAL_BREAK_IN_STROKES);
   }
 
   Serial.printf("Features: Binary Search, Quick Fail, Stability Check (Max Jitter %.0f%%)\n", CAL_MAX_JITTER_PERCENT * 100);
@@ -515,10 +515,10 @@ void setup() {
   Serial.println("Smart Pump Calibrator (ESP32-S3)");
   Serial.println("--------------------------------");
   Serial.printf("Total Lifetime Strokes: %lu\n", strokeCounter);
-  if (strokeCounter < 5000) {
+  if (strokeCounter < CAL_BREAK_IN_STROKES) {
       Serial.println("\n!!! WARNING: BREAK-IN PERIOD NOT COMPLETE !!!");
-      Serial.printf("Current Strokes: %lu / 5000. Mechanical stability not guaranteed.\n", strokeCounter);
-      Serial.println("Please run Continuous Pumping mode until 5000 strokes are reached.\n");
+      Serial.printf("Current Strokes: %lu / %lu. Mechanical stability not guaranteed.\n", strokeCounter, CAL_BREAK_IN_STROKES);
+      Serial.printf("Please run Continuous Pumping mode until %lu strokes are reached.\n\n", CAL_BREAK_IN_STROKES);
   } else {
       Serial.println("Break-in Period: COMPLETE");
   }
@@ -567,12 +567,12 @@ void loop() {
             Serial.printf("Using Config: Pulse %lu ms / Pause %lu ms\n", currentPulseDuration, currentPauseDuration);
 
             // Break-in Estimation
-            if (strokeCounter < 5000) {
-                unsigned long remaining = 5000 - strokeCounter;
+            if (strokeCounter < CAL_BREAK_IN_STROKES) {
+                unsigned long remaining = CAL_BREAK_IN_STROKES - strokeCounter;
                 unsigned long cycleTime = currentPulseDuration + currentPauseDuration;
                 unsigned long totalSeconds = (remaining * cycleTime) / 1000;
                 unsigned long minutes = totalSeconds / 60;
-                Serial.printf("Break-in Progress: %lu/5000. Est. Remaining Time: %lu min\n", strokeCounter, minutes);
+                Serial.printf("Break-in Progress: %lu/%lu. Est. Remaining Time: %lu min\n", strokeCounter, CAL_BREAK_IN_STROKES, minutes);
             }
 
             currentState = STATE_PUMPING;
@@ -589,8 +589,8 @@ void loop() {
             strokeCounter++;
             Serial.printf("Stroke Count: %lu\n", strokeCounter);
             
-            if (strokeCounter == 5000) {
-                Serial.println("\n*** BREAK-IN PERIOD COMPLETE (5000 Strokes) ***");
+            if (strokeCounter == CAL_BREAK_IN_STROKES) {
+                Serial.printf("\n*** BREAK-IN PERIOD COMPLETE (%lu Strokes) ***\n", CAL_BREAK_IN_STROKES);
                 Serial.println("The pump is now mechanically stable and ready for calibration.");
             }
             
@@ -660,18 +660,18 @@ void loop() {
             // Periodic Save & Status
             if (strokeCounter % 100 == 0) {
                 preferences.putULong("strokes", strokeCounter);
-                if (strokeCounter < 5000) {
-                     unsigned long remaining = 5000 - strokeCounter;
+                if (strokeCounter < CAL_BREAK_IN_STROKES) {
+                     unsigned long remaining = CAL_BREAK_IN_STROKES - strokeCounter;
                      unsigned long cycleTime = currentPulseDuration + currentPauseDuration;
                      unsigned long minutes = ((remaining * cycleTime) / 1000) / 60;
-                     Serial.printf("Break-in: %lu/5000 (%lu min remaining)\n", strokeCounter, minutes);
+                     Serial.printf("Break-in: %lu/%lu (%lu min remaining)\n", strokeCounter, CAL_BREAK_IN_STROKES, minutes);
                 }
             }
 
             Serial.printf("Stroke Count: %lu\n", strokeCounter);
             
-            if (strokeCounter == 5000) {
-                Serial.println("\n*** BREAK-IN PERIOD COMPLETE (5000 Strokes) ***");
+            if (strokeCounter == CAL_BREAK_IN_STROKES) {
+                Serial.printf("\n*** BREAK-IN PERIOD COMPLETE (%lu Strokes) ***\n", CAL_BREAK_IN_STROKES);
                 Serial.println("The pump is now mechanically stable and ready for calibration.");
             }
           }
