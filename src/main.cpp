@@ -8,6 +8,7 @@ Adafruit_NeoPixel rgbLed(NUM_LEDS, RGB_LED_PIN, NEO_GRB + NEO_KHZ800);
 Bounce debouncer = Bounce();
 Bounce bootDebouncer = Bounce();
 Preferences preferences;
+bool longPressHandled = false;
 
 // States
 enum SystemState {
@@ -498,37 +499,57 @@ void loop() {
     case STATE_READY:
       // Green LED is already set
       
-      // 1. Toggle ON (External Button)
-      if (debouncer.fell()) { 
-        Serial.println("External Button -> Starting Continuous Pumping...");
-        Serial.printf("Total Lifetime Strokes: %lu\n", strokeCounter);
-        Serial.printf("Using Config: Pulse %lu ms / Pause %lu ms\n", currentPulseDuration, currentPauseDuration);
+      // Check for Long Press (Reset)
+      if (debouncer.read() == LOW && debouncer.currentDuration() >= 5000 && !longPressHandled) {
+          strokeCounter = 0;
+          preferences.putULong("strokes", 0);
+          Serial.println("\n*** STATISTICS RESET BY USER (Long Press) ***");
+          Serial.printf("Total Lifetime Strokes: %lu\n", strokeCounter);
+          
+          // Visual confirmation (Flash White)
+          for(int i=0; i<3; i++) {
+            setStatusColor(255, 255, 255); 
+            delay(100);
+            setStatusColor(0, 255, 0); 
+            delay(100);
+          }
+          longPressHandled = true;
+      }
 
-        // Break-in Estimation
-        if (strokeCounter < 5000) {
-            unsigned long remaining = 5000 - strokeCounter;
-            unsigned long cycleTime = currentPulseDuration + currentPauseDuration;
-            unsigned long totalSeconds = (remaining * cycleTime) / 1000;
-            unsigned long minutes = totalSeconds / 60;
-            Serial.printf("Break-in Progress: %lu/5000. Est. Remaining Time: %lu min\n", strokeCounter, minutes);
-        }
+      // 1. Toggle ON (External Button) - Trigger on Release to support Long Press
+      if (debouncer.rose()) { 
+        if (!longPressHandled) {
+            Serial.println("External Button -> Starting Continuous Pumping...");
+            Serial.printf("Total Lifetime Strokes: %lu\n", strokeCounter);
+            Serial.printf("Using Config: Pulse %lu ms / Pause %lu ms\n", currentPulseDuration, currentPauseDuration);
 
-        currentState = STATE_PUMPING;
-        
-        // Start first pulse immediately
-        digitalWrite(PUMP_PIN, HIGH);
-        isPulseHigh = true;
-        lastPulseSwitchTime = millis();
-        
-        strokeCounter++;
-        Serial.printf("Stroke Count: %lu\n", strokeCounter);
-        
-        if (strokeCounter == 5000) {
-            Serial.println("\n*** BREAK-IN PERIOD COMPLETE (5000 Strokes) ***");
-            Serial.println("The pump is now mechanically stable and ready for calibration.");
+            // Break-in Estimation
+            if (strokeCounter < 5000) {
+                unsigned long remaining = 5000 - strokeCounter;
+                unsigned long cycleTime = currentPulseDuration + currentPauseDuration;
+                unsigned long totalSeconds = (remaining * cycleTime) / 1000;
+                unsigned long minutes = totalSeconds / 60;
+                Serial.printf("Break-in Progress: %lu/5000. Est. Remaining Time: %lu min\n", strokeCounter, minutes);
+            }
+
+            currentState = STATE_PUMPING;
+            
+            // Start first pulse immediately
+            digitalWrite(PUMP_PIN, HIGH);
+            isPulseHigh = true;
+            lastPulseSwitchTime = millis();
+            
+            strokeCounter++;
+            Serial.printf("Stroke Count: %lu\n", strokeCounter);
+            
+            if (strokeCounter == 5000) {
+                Serial.println("\n*** BREAK-IN PERIOD COMPLETE (5000 Strokes) ***");
+                Serial.println("The pump is now mechanically stable and ready for calibration.");
+            }
+            
+            setStatusColor(255, 255, 0); // Yellow = Pump Active
         }
-        
-        setStatusColor(255, 255, 0); // Yellow = Pump Active
+        longPressHandled = false; // Reset flag on release
       }
       
       // 2. Start Calibration (Boot Button)
@@ -558,6 +579,7 @@ void loop() {
         currentState = STATE_READY;
         setStatusColor(0, 255, 0); // Green = Ready
         Serial.println("State: READY (Green).");
+        longPressHandled = true; // Prevent restart on release
       } else {
         // Handle Pulsing Logic (Continuous)
         unsigned long currentMillis = millis();
