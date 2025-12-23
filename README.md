@@ -1,6 +1,6 @@
 # Smart Pump Calibrator (ESP32-S3)
 
-This firmware is a sophisticated analysis tool for 12V metering pumps (chain oilers). Unlike simple timers, it uses **Auto-Calibration** and **Stability Analysis** to find the perfect flow settings where the pump and hydraulic system work in resonance.
+This firmware is a automatic analysis tool for 12V metering pumps (chain oilers). It uses **Auto-Calibration** and **Stability Analysis** to find the perfect flow settings where the pump and hydraulic system work in resonance.
 
 ## Hardware Setup
 *   **Microcontroller**: ESP32-S3
