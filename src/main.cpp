@@ -577,7 +577,11 @@ void loop() {
 
     case STATE_PUMPING:
       // Check for Stop (External Button)
-      if
+      if (debouncer.fell()) {
+        Serial.println("External Button -> Stopping Pump...");
+        digitalWrite(PUMP_PIN, LOW);
+        preferences.putULong("strokes", strokeCounter); // Save on stop
+        
         // Calculate Session Stats
         unsigned long sessionStrokes = strokeCounter - sessionStartStrokes;
         unsigned long sessionDrops = dropCount - sessionStartDrops;
@@ -590,10 +594,6 @@ void loop() {
         }
         Serial.println("==========================\n");
 
-         (debouncer.fell()) {
-        Serial.println("External Button -> Stopping Pump...");
-        digitalWrite(PUMP_PIN, LOW);
-        preferences.putULong("strokes", strokeCounter); // Save on stop
         Serial.println("Stats saved.");
         currentState = STATE_READY;
         setStatusColor(0, 255, 0); // Green = Ready

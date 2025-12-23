@@ -16,7 +16,8 @@ This firmware is a automatic analysis tool for 12V metering pumps (chain oilers)
 | Component | Action / Color | Function |
 | :--- | :--- | :--- |
 | **Boot Button** | Short Press | **Start / Stop Auto-Calibration** |
-| **Ext. Button** | Short Press | **Toggle Continuous Pumping** (On/Off) |
+| **Ext. Button** | Short Press | **Start / Stop Continuous Pumping** |
+| **Ext. Button** | **Long Press (5s)** | **RESET Statistics** (Flash White 3x) |
 | **LED** | 🟢 **Green** | **Ready** (Idle or Pumping with valid settings) |
 | **LED** | 🔵 **Blue** | **Calibrating** (Do not disturb sensor) |
 | **LED** | 🟡 **Yellow** | **Continuous Mode** (Running) |
@@ -26,15 +27,29 @@ This firmware is a automatic analysis tool for 12V metering pumps (chain oilers)
 
 ## How to Use
 
-### 1. Break-In Period (Important!)
+### 1. Break-In Period (Critical!)
 New pumps need a mechanical break-in period to deliver consistent results.
-1.  Fill the system with oil.
-2.  Press the **External Button** to start Continuous Mode.
-3.  Let the pump run for **3000-5000 strokes**.
-4.  The Serial Monitor will display `*** BREAK-IN PERIOD COMPLETE ***` when 5000 strokes are reached.
-5.  Only then proceed to calibration.
+*   **Requirement**: 5000 Strokes.
+*   **Status**: The system tracks total strokes persistently (saved to memory).
+*   **Warning**: If you try to calibrate before 5000 strokes, the system will warn you that results may drift.
+*   **Action**: Run Continuous Mode until the Serial Monitor confirms `*** BREAK-IN PERIOD COMPLETE ***`.
 
-### 2. Bleeding (Initial Setup)
+### 2. Tank Calibration (Session Stats)
+To calibrate your tank level sensor or measure flow rate:
+1.  Start Continuous Mode (Ext. Button).
+2.  Let the pump run for a specific amount (e.g., fill a measuring cylinder).
+3.  Stop Continuous Mode (Ext. Button).
+4.  **Read the Log**: The Serial Monitor will display a **Session Summary**:
+    ```
+    === SESSION STATISTICS ===
+      Strokes: 150
+      Drops:   1200
+      Ratio:   8.00 Drops/Stroke
+    ==========================
+    ```
+    Use these values to calibrate your tank capacity.
+
+### 3. Bleeding (Initial Setup)
 When the system starts, it uses default "Bleeding" settings (70ms Pulse / 300ms Pause).
 1.  Press the **External Button** to start pumping.
 2.  Let it run until oil flows steadily from the nozzle without air bubbles.
@@ -45,7 +60,7 @@ This process finds the physical limits of your hydraulic system.
 1.  Ensure the sensor is clean and the hose is full (bled).
 2.  Press the **Boot Button**. The LED turns **Blue**.
 3.  **Wait.** The system will perform a series of stress tests.
-4.  **Watch the Serial Monitor** (115200 baud) for details.
+4.  **Watch the Serial Monitor** (115200 baud) for details (including ETA).
 
 #### What happens during Calibration?
 The system performs a **Binary Search** to find the most stable flow rate. Even if the Serial Log looks fast or abbreviated, the following happens **before every single test step**:
@@ -53,6 +68,7 @@ The system performs a **Binary Search** to find the most stable flow rate. Even 
 2.  **Priming**: It fires **10 pulses** (blind) to pressurize the hose and ensure the next drop is ready.
 3.  **Measurement**: It fires 50 test pulses and records the exact timing of every drop.
 4.  **Optimization**: It automatically selects the configuration that offers the **lowest Jitter** (highest stability). If two settings are equally stable, it chooses the faster one.
+5.  **Smart Limits**: The search optimization is capped at 450ms pause, as values above this are always considered valid.
 
 #### Understanding the Log Output
 *   `OK (Drops: 50, Jitter: 1.3%)`: **Perfect Result.** 50 drops detected, and the time gap between them varied by only 1.3%.
