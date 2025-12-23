@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <WiFi.h>
 #include <Adafruit_NeoPixel.h>
 #include <Bounce2.h>
 #include <Preferences.h>
@@ -482,6 +483,7 @@ finish_calibration:
     Serial.printf("  Pulse: %lu ms\n", bestPulse);
     Serial.printf("  Pause: %lu ms\n", bestPause);
     Serial.printf("  Cycle: %lu ms\n", minCycleTime);
+    Serial.printf("  Learned Elasticity Ratio: %.1f\n", currentElasticityRatio);
     
     // Safety Margin Calculation
     unsigned long safePause = (unsigned long)(bestPause * CAL_SAFETY_MARGIN_FACTOR); 
@@ -522,6 +524,10 @@ abort_calibration:
 
 void setup() {
   Serial.begin(115200);
+  
+  // Disable WiFi and Bluetooth to save power and reduce interference
+  WiFi.mode(WIFI_OFF);
+  btStop();
   
   // Initialize the pump pin as an output
   pinMode(PUMP_PIN, OUTPUT);
