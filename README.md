@@ -93,7 +93,6 @@ To analyze how the pump behaves as it warms up (Thermal Drift), you can configur
 *   The system will run the full calibration process multiple times automatically.
 *   It enforces a cool-down period between cycles.
 *   **Final Report**: After the last cycle, a summary table is printed to the Serial Monitor, showing the drift in Pulse, Pause, and Flow Ratio over time.
-*   **Note on Elasticity**: If the "Ratio" (Pause/Pulse) exceeds 10.0, it strongly indicates **air bubbles** in the system (acting as a spring) or a very soft/hot hose. The Pre-Calibration Bleed helps to mitigate this.
 
 ### 7. Validation Run
 Immediately after the final recommendation is calculated, the system automatically starts a **15-Minute Validation Run**.
@@ -175,5 +174,7 @@ The system calculates an **Elasticity Ratio** to determine how much time the hos
 | **2.0 - 3.0** | **Hard / Short** | Stiff lines (e.g., PTFE). Pressure drops instantly. Fast cycles. |
 | **4.0 - 6.0** | **Standard** | Typical PVC/Silicon hoses. Balanced damping. |
 | **> 8.0** | **Soft / Long** | Soft hoses. The hose expands significantly and needs time to stop dripping. |
+
+> **⚠️ Warning:** If the "Ratio" (Pause/Pulse) exceeds **10.0**, it strongly indicates **air bubbles** in the system (acting as a spring) or a very soft/hot hose. The **Pre-Calibration Bleed** helps to mitigate this.
 
 *The system learns the specific ratio for your setup during calibration.*
