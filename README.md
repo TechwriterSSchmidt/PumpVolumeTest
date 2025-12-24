@@ -36,7 +36,7 @@ This firmware is an automatic analysis tool for 12V metering pumps (chain oilers
 | **Max Jitter** | 5% (0.05) | Maximum allowed instability |
 | **Smart Exit** | 0.8% (0.008) | Jitter threshold for early optimization stop |
 | **Trend Stop** | 2 Steps | Stop if results get worse consecutively |
-| **Repeat Cycles** | 5 | Number of times to run calibration automatically |
+| **Repeat Cycles** | 5 | Number of times to run calibration automatically (max is 10) |
 | **Optimization Cap** | 300 ms | Max lower bound for adaptive search |
 | **Safety Margin** | +15% (1.15) | Added to pause time for reliability |
 | **Rec. Pulse Rounding** | 5 ms | Rounding step for pulse recommendation (always rounds up) |
