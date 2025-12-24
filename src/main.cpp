@@ -59,6 +59,7 @@ struct CalibrationResult {
     unsigned long cycleTime;
     float elasticityRatio;
     float dropsPerStroke;
+    float jitter;
     unsigned long duration;
 };
 
@@ -549,6 +550,7 @@ finish_calibration:
         cycleResults[completedCycles].cycleTime = minCycleTime;
         cycleResults[completedCycles].elasticityRatio = currentElasticityRatio;
         cycleResults[completedCycles].dropsPerStroke = dropsPerStroke;
+        cycleResults[completedCycles].jitter = bestJitter;
         cycleResults[completedCycles].duration = millis() - calibrationStartTime;
         completedCycles++;
     }
@@ -728,18 +730,31 @@ void loop() {
             Serial.println("\n\n##########################################");
             Serial.println("       MULTI-CYCLE CALIBRATION REPORT");
             Serial.println("##########################################");
-            Serial.println("Cycle | Pulse | Pause | Ratio | Duration");
-            Serial.println("------+-------+-------+-------+----------");
+            Serial.println("Cycle | Pulse | Pause | Ratio | Jitter | Duration");
+            Serial.println("------+-------+-------+-------+--------+----------");
             for (int i = 0; i < completedCycles; i++) {
                 unsigned long min = cycleResults[i].duration / 60000;
                 unsigned long sec = (cycleResults[i].duration % 60000) / 1000;
-                Serial.printf("  %d   | %lu ms | %lu ms |  %.1f  | %lu min %lu s\n", 
+                Serial.printf("  %d   | %lu ms | %lu ms |  %.1f  |  %.1f%%  | %lu min %lu s\n", 
                     cycleResults[i].cycleNumber, 
                     cycleResults[i].pulse, 
                     cycleResults[i].pause, 
                     cycleResults[i].elasticityRatio,
+                    cycleResults[i].jitter * 100,
                     min, sec);
             }
+            Serial.println("##########################################\n");
+
+            // Final Recommendation based on last cycle
+            int last = completedCycles - 1;
+            unsigned long recPulse = cycleResults[last].pulse;
+            unsigned long recPause = (unsigned long)(cycleResults[last].pause * CAL_SAFETY_MARGIN_FACTOR);
+            unsigned long recCycle = recPulse + recPause;
+            
+            Serial.println("FINAL RECOMMENDATION (Based on last cycle):");
+            Serial.printf("  Pulse Width:    %lu ms\n", recPulse);
+            Serial.printf("  Pause Duration: %lu ms (includes +%.0f%% safety margin)\n", recPause, (CAL_SAFETY_MARGIN_FACTOR - 1.0) * 100);
+            Serial.printf("  Cycle Time:     %lu ms\n", recCycle);
             Serial.println("##########################################\n");
         }
         
