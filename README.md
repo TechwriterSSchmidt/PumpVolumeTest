@@ -31,12 +31,12 @@ This firmware is an automatic analysis tool for 12V metering pumps (chain oilers
 | **Bleeding Pulse** | 70 ms | Pulse width for manual bleeding |
 | **Bleeding Pause** | 300 ms | Pause duration for manual bleeding |
 | **Cal. Pulse Range** | 40 - 100 ms | Range of pulse widths to test |
-| **Cal. Pause Range** | 200 - 900 ms | Range of pause durations to test |
-| **Test Pulses** | 50 | Number of pulses per test step |
+| **Cal. Pause Range** | 280 - 1000 ms | Range of pause durations to test |
+| **Test Pulses** | 100 | Number of pulses per test step |
 | **Max Jitter** | 5% (0.05) | Maximum allowed instability |
 | **Smart Exit** | 0.8% (0.008) | Jitter threshold for early optimization stop |
 | **Trend Stop** | 2 Steps | Stop if results get worse consecutively |
-| **Repeat Cycles** | 1 | Number of times to run calibration automatically |
+| **Repeat Cycles** | 10 | Number of times to run calibration automatically |
 | **Optimization Cap** | 300 ms | Max lower bound for adaptive search |
 | **Safety Margin** | +15% (1.15) | Added to pause time for reliability |
 | **Cool-Down** | 120 s | Rest time between test steps |
