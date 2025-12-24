@@ -77,7 +77,7 @@ const int CAL_RECOMMENDATION_PULSE_ROUNDING_MS = 5;
 // Minimum Ratio of Pause to Pulse duration.
 // The hose needs time to relax (Windkessel effect). 
 // 3.0 means: If Pulse is 50ms, Pause must be at least 150ms.
-const float CAL_ELASTICITY_RATIO = 5.0;
+const float CAL_ELASTICITY_RATIO = 4.0;
 
 // Smart Exit Optimization
 // If the best found jitter is below this threshold (e.g., 0.8%),
