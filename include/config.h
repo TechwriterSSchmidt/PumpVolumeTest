@@ -52,9 +52,9 @@ const unsigned long CAL_PAUSE_STEP = 5;     // Resolution (not strictly used in 
 
 // Calibration Logic
 const int CAL_PRIMING_PULSES = 20;      // Pulses to pressurize hose before measuring (increased to flush warm oil)
-const int CAL_TEST_PULSES = 100;        // Number of pulses to test per step
-const int CAL_TARGET_DROPS_MIN = 85;    // Minimum acceptable drops for 100 pulses
-const int CAL_TARGET_DROPS_MAX = 115;   // Maximum acceptable drops for 100 pulses
+const int CAL_TEST_PULSES = 60;        // Number of pulses to test per step
+const int CAL_TARGET_DROPS_MIN = 54;    // Minimum acceptable drops for 100 pulses
+const int CAL_TARGET_DROPS_MAX = 66;   // Maximum acceptable drops for 100 pulses
 
 // Stability Criteria
 // Maximum allowed jitter (Standard Deviation / Average Interval).
