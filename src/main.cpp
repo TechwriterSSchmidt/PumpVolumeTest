@@ -725,8 +725,7 @@ void loop() {
             sessionStartDrops = dropCount;
 
             // Start first pulse immediately
-            digitalWrite(PUMP_PIN, HIGH);
-            isPulseHigh = true;
+            pumpPulse(currentPulseDuration);
             lastPulseSwitchTime = millis();
             
             strokeCounter++;
@@ -767,9 +766,7 @@ void loop() {
                     break;
                 }
 
-                digitalWrite(PUMP_PIN, HIGH);
-                delay(CAL_PRE_BLEED_PULSE_MS);
-                digitalWrite(PUMP_PIN, LOW);
+                pumpPulse(CAL_PRE_BLEED_PULSE_MS);
                 delay(CAL_PRE_BLEED_PAUSE_MS);
             }
             
