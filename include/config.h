@@ -71,7 +71,7 @@ const float CAL_SAFETY_MARGIN_FACTOR = 1.15;
 // Minimum Ratio of Pause to Pulse duration.
 // The hose needs time to relax (Windkessel effect). 
 // 3.0 means: If Pulse is 50ms, Pause must be at least 150ms.
-const float CAL_ELASTICITY_RATIO = 3.0;
+const float CAL_ELASTICITY_RATIO = 5.0;
 
 // Smart Exit Optimization
 // If the best found jitter is below this threshold (e.g., 0.8%),
