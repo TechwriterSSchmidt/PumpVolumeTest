@@ -141,12 +141,12 @@ To ensure the recommended settings are robust against outliers (e.g., a single "
 | Cycle | Pulse | Pause | Status |
 | :--- | :--- | :--- | :--- |
 | 1 | 40 ms | 300 ms | *Ignored (Lowest)* |
-| 2 | 45 ms | 350 ms | Used |
+| 2 | 42 ms | 350 ms | Used |
 | 3 | 45 ms | 360 ms | Used |
 | 4 | 50 ms | 450 ms | *Ignored (Highest)* |
 
-*   **Avg Pulse**: (45+45)/2 = 45 ms -> Rounded Up -> **45 ms**
-*   **Avg Pause**: (350+360)/2 = 355 ms -> +15% Margin -> **408 ms**
+*   **Avg Pulse**: (42+45)/2 = 43.5 ms -> Rounded Up (5ms step) -> **45 ms** (Force Reserve)
+*   **Avg Pause**: (350+360)/2 = 355 ms -> +15% Margin -> **408 ms** (Refill Reserve)
 
 This ensures the pump works reliably in both cold and warm conditions without being skewed by extreme values.
 
