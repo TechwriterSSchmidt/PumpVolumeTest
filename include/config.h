@@ -77,7 +77,7 @@ const int CAL_RECOMMENDATION_PULSE_ROUNDING_MS = 5;
 // Minimum Ratio of Pause to Pulse duration.
 // The hose needs time to relax (Windkessel effect). 
 // 3.0 means: If Pulse is 50ms, Pause must be at least 150ms.
-const float CAL_ELASTICITY_RATIO = 4.0;
+const float CAL_ELASTICITY_RATIO = 3.0;
 
 // Smart Exit Optimization
 // If the best found jitter is below this threshold (e.g., 0.8%),
@@ -106,4 +106,12 @@ const unsigned long CAL_COOLDOWN_MS = 30000; // 30 Seconds
 // Validation Run
 // Duration of the automatic validation run after calibration (in minutes).
 const int CAL_VALIDATION_DURATION_MIN = 15;
+
+// Pre-Calibration Bleed
+// Runs before the first calibration cycle to flush air bubbles and warm up the oil.
+const bool CAL_ENABLE_PRE_BLEED = true;
+const unsigned long CAL_PRE_BLEED_DURATION_MS = 30000; // 30 Seconds
+const unsigned long CAL_PRE_BLEED_PULSE_MS = 45;
+const unsigned long CAL_PRE_BLEED_PAUSE_MS = 250;      // Fast pumping to force bubbles out
+
 #endif

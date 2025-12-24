@@ -706,6 +706,43 @@ void loop() {
       // 2. Start Calibration (Boot Button)
       if (bootDebouncer.fell()) {
         Serial.println("Boot Button -> Starting Calibration...");
+        
+        // PRE-CALIBRATION BLEED
+        if (CAL_ENABLE_PRE_BLEED) {
+            Serial.println("\n>>> STARTING PRE-CALIBRATION BLEED <<<");
+            Serial.printf("   (Flushing system for %lu s to remove air bubbles...)\n", CAL_PRE_BLEED_DURATION_MS / 1000);
+            
+            unsigned long bleedStart = millis();
+            bool aborted = false;
+            
+            // Helper to set LED color (since setStatusColor is not available in this scope if defined later, 
+            // but it is defined earlier in this file, so we can use it)
+            setStatusColor(0, 0, 255); // Blue
+
+            while (millis() - bleedStart < CAL_PRE_BLEED_DURATION_MS) {
+                // Check for abort
+                bootDebouncer.update();
+                if (bootDebouncer.fell()) {
+                    Serial.println(">> ABORTED by user.");
+                    aborted = true;
+                    break;
+                }
+
+                digitalWrite(PUMP_PIN, HIGH);
+                delay(CAL_PRE_BLEED_PULSE_MS);
+                digitalWrite(PUMP_PIN, LOW);
+                delay(CAL_PRE_BLEED_PAUSE_MS);
+            }
+            
+            if (aborted) {
+                setStatusColor(0, 255, 0); // Green
+                break; // Exit the button press handler
+            }
+
+            Serial.println(">> BLEED COMPLETE. System primed.\n");
+            delay(1000); // Short pause before real calibration starts
+        }
+
         currentState = STATE_CALIBRATION;
         setStatusColor(0, 0, 255); // Blue
         
