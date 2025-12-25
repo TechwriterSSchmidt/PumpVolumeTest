@@ -79,19 +79,37 @@ This process finds the physical limits of your hydraulic system.
 5.  **Watch the Serial Monitor** (115200 baud) for details.
 
 #### Understanding the Log Output
-*   `OK (Drops: 50, Jitter: 1.3%)`: **Perfect Result.** 50 drops detected, and the time gap between them varied by only 1.3%.
-*   `FAIL (Drops: 49, Jitter: 17.6%)`: **Unstable.** The count was close, but the drops were irregular (oscillating). Rejected.
+*   `OK (Drops: 60, Jitter: 1.3%)`: **Perfect Result.** 60 drops detected (1:1 ratio), and the time gap between them varied by only 1.3%.
+*   `FAIL (Drops: 49, Jitter: 17.6%)`: **Unstable.** The count was too low, and the drops were irregular (oscillating). Rejected.
+*   `FAIL ... -> High Jitter detected. Trying SHORTER pause (Air Spring Theory)`: **Diagnosis.** The system detected that the flow is correct (enough drops) but unstable. It assumes air bubbles or elasticity are acting as a spring. It will try *faster* pumping to stabilize the pressure.
 *   `(Quick Fail: ...)`: **Optimization.** The system detected chaos (e.g., continuous stream or no drops) early and aborted this step to save time.
-*   `[Cool-Down]`: The system is actively cooling the coil. You can abort this wait with the Boot Button.
 
-### 5. Result
+### 5. Selection Logic (How the Best Value is Chosen)
+The calibrator tests many combinations of Pulse and Pause durations. To determine the "Winner", it uses a strict hierarchy of criteria tailored for chain oilers:
+
+1.  **Accuracy (Primary Priority)**
+    *   **Goal:** 1 Drop per 1 Pump Stroke (1:1 Ratio).
+    *   The system prioritizes the setting that gets closest to the target drop count (e.g., 60 drops for 60 pulses).
+    *   *Why?* A chain oiler runs rarely (e.g., every 3 minutes). Every single stroke must deliver oil. A stable setting that only delivers drops 90% of the time is useless.
+
+2.  **Stability / Jitter (Secondary Priority)**
+    *   **Goal:** Low variation in drop timing.
+    *   If two settings have the same accuracy (e.g., both delivered exactly 60 drops), the one with the lower Jitter (standard deviation) wins.
+    *   *Note:* Differences smaller than 0.1% are treated as equal.
+
+3.  **Cycle Time (Tie-Breaker)**
+    *   **Goal:** Efficiency for "Burst Mode".
+    *   If Accuracy and Stability are identical, the system prefers the **Faster Cycle Time** (Shorter Pause).
+    *   *Why?* Modern chain oilers often use "Burst Mode" (e.g., 2-3 strokes in rapid succession). A faster cycle time maintains pressure better between these strokes (Air Spring Effect), ensuring the second and third strokes are just as effective as the first.
+
+### 6. Result
 When finished, the LED turns **Green**.
 The Serial Monitor will display:
 *   **Raw Values**: The absolute physical limit found.
 *   **Recommended Settings**: The limit + **15% Safety Margin**.
 The system automatically applies these recommended settings for Continuous Mode.
 
-### 6. Multi-Cycle Calibration (Thermal Drift)
+### 7. Multi-Cycle Calibration (Thermal Drift)
 To analyze how the pump behaves as it warms up (Thermal Drift), you can configure `CAL_REPEAT_CYCLES` in `config.h` (e.g., set to 5).
 *   The system will run the full calibration process multiple times automatically.
 *   It enforces a cool-down period between cycles.

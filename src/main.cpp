@@ -482,17 +482,35 @@ void runCalibrationStep() {
       unsigned long currentCycle = p + minPauseForThisPulse;
       Serial.printf("  => Valid Config Found: %lu ms / %lu ms (Cycle: %lu ms, Jitter: %.1f%%)\n", p, minPauseForThisPulse, currentCycle, jitterForMinPause * 100);
       
-      // SELECTION CRITERIA: Lowest Jitter wins.
-      // If Jitter is very similar (diff < 0.5%), prefer the faster one (shorter cycle).
+      // SELECTION CRITERIA:
+      // 1. Accuracy (Drops per Stroke) - CRITICAL. We want 1:1 ratio.
+      // 2. Stability (Jitter) - Important, but secondary to getting the right volume.
+      // 3. Cycle Time - Tie-breaker.
+      
       bool isBetter = false;
       
-      if (jitterForMinPause < bestJitter - 0.005) {
-          // Significantly better stability
+      long diffNew = abs((long)dropsForMinPause - CAL_TEST_PULSES);
+      long diffOld = abs((long)bestDrops - CAL_TEST_PULSES);
+      
+      // 1. Check Accuracy (Primary)
+      if (diffNew < diffOld) {
+          // New is closer to target (e.g. 60 vs 55).
+          // Since we already filtered for Max Jitter, any valid result is "stable enough".
+          // Prioritize getting exactly 1 drop per pulse.
           isBetter = true;
-      } else if (abs(jitterForMinPause - bestJitter) <= 0.005) {
-          // Similar stability -> prefer speed
-          if (currentCycle < minCycleTime) {
+      } else if (diffNew > diffOld) {
+          isBetter = false;
+      } else {
+          // Accuracy is identical (e.g. both 60). Check Jitter (Secondary).
+          if (jitterForMinPause < bestJitter - 0.001) {
               isBetter = true;
+          } else if (abs(jitterForMinPause - bestJitter) <= 0.001) {
+              // Jitter is identical. Check Cycle Time (Tertiary).
+              // Prefer FASTER cycle time to support "Burst Mode" (multiple strokes per event).
+              // A faster cycle maintains pressure better (Air Spring effect) during bursts.
+              if (currentCycle < minCycleTime) {
+                  isBetter = true;
+              }
           }
       }
 
@@ -537,7 +555,7 @@ void runCalibrationStep() {
       // If 40ms pulse needs 200ms pause, 50ms pulse will likely need >= 200ms.
       if (minPauseForThisPulse > searchLowerBound) {
           searchLowerBound = minPauseForThisPulse;
-          // Cap optimization at configured limit (User Request: values > CAP are always valid, don't force search higher)
+          // Cap optimization at configured limit
           if (searchLowerBound > CAL_OPTIMIZATION_LOWER_BOUND_CAP) searchLowerBound = CAL_OPTIMIZATION_LOWER_BOUND_CAP;
           Serial.printf("     (Optimization: Next search starts at %lu ms)\n", searchLowerBound);
       }
