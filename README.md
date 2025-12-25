@@ -119,10 +119,12 @@ To analyze how the pump behaves as it warms up (Thermal Drift), you can configur
 ### 8. Real-World Burst Validation
 Immediately after the final recommendation is calculated, the system automatically starts a **Real-World Burst Validation**.
 *   **Purpose**: To verify that the settings work in realistic "riding conditions" (long pauses followed by bursts).
-*   **Scenario A**: 5x Bursts of **2 Strokes** (20s pause between bursts).
-*   **Scenario B**: 5x Bursts of **3 Strokes** (20s pause between bursts).
+*   **Scenarios**: The system tests **1, 2, 3, 4, and 5-stroke bursts**.
+*   **Procedure**:
+    *   For each burst size (1 to 5), it performs **5 repetitions**.
+    *   Between bursts, it waits **20 seconds** (simulating riding time).
 *   **Success Criteria**:
-    *   **Green**: Perfect 1:1 drop delivery in all bursts.
+    *   **Green**: Perfect 1:1 drop delivery in all bursts (e.g., 5 drops for a 5-stroke burst).
     *   **Yellow**: Minor deviations (90-110% accuracy).
     *   **Red**: Unstable (e.g., first drop missing after long pause).
 *   **Abort**: You can stop this run at any time by pressing the **Boot Button**.

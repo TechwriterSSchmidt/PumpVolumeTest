@@ -106,7 +106,7 @@ const unsigned long CAL_COOLDOWN_MS = 30000; // 30 Seconds
 
 // Validation Run Settings
 // Instead of continuous running, we simulate real-world "Bursts".
-const int CAL_VALIDATION_BURST_PAUSE_SEC = 30; // Time between bursts (simulating riding)
+const int CAL_VALIDATION_BURST_PAUSE_SEC = 45; // Time between bursts (simulating riding)
 const int CAL_VALIDATION_REPEATS = 10;          // How many bursts to test per scenario
 
 // Pre-Calibration Bleed
