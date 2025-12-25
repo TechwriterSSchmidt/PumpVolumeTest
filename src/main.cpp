@@ -534,31 +534,30 @@ void runCalibrationStep() {
         // Apply safety factor (90% of observed)
         float safeObservedRatio = observedRatio * 0.9;
 
-        if (safeObservedRatio > currentElasticityRatio) {
-            // Moving Average: New = (Old + New) / 2
-            currentElasticityRatio = (currentElasticityRatio + safeObservedRatio) / 2.0;
-            Serial.printf("     (Learning: Hose elasticity requires ratio ~%.1f [Moving Avg])\n", currentElasticityRatio);
+        // BIDIRECTIONAL LEARNING
+        // If we found a working config, we should adjust our expectations towards it.
+        // Whether it's higher (more elasticity needed) or lower (Air Spring works),
+        // we want the search start point to reflect reality.
+        
+        // Moving Average: New = (Old + New) / 2
+        currentElasticityRatio = (currentElasticityRatio + safeObservedRatio) / 2.0;
+        Serial.printf("     (Learning: Hose elasticity requires ratio ~%.1f [Moving Avg])\n", currentElasticityRatio);
+        
+        // OPTIMIZATION: Update lower bound for next pulse width
+        // If we found a very fast pause (Air Spring), we should allow the next search to start low too.
+        // So we only raise the lower bound if the current best pause is significantly higher.
+        if (minPauseForThisPulse > searchLowerBound) {
+             // Only raise if it's a "slow" config. If it's fast, keep the bound low.
+             searchLowerBound = minPauseForThisPulse;
+             // Cap optimization at configured limit
+             if (searchLowerBound > CAL_OPTIMIZATION_LOWER_BOUND_CAP) searchLowerBound = CAL_OPTIMIZATION_LOWER_BOUND_CAP;
+             Serial.printf("     (Optimization: Next search starts at %lu ms)\n", searchLowerBound);
+        } else if (minPauseForThisPulse < searchLowerBound) {
+             // If we found a faster valid pause than expected, LOWER the bound for next time!
+             searchLowerBound = minPauseForThisPulse;
+             if (searchLowerBound < CAL_PAUSE_MIN) searchLowerBound = CAL_PAUSE_MIN;
+             Serial.printf("     (Optimization: Found faster valid config! Lowering search start to %lu ms)\n", searchLowerBound);
         }
-      } else {
-          // Result is NOT better (Diminishing Returns)
-          consecutiveWorseResults++;
-          Serial.printf("     [Trend] No improvement. Consecutive worse steps: %d/%d\n", consecutiveWorseResults, CAL_MAX_CONSECUTIVE_WORSE_STEPS);
-          
-          if (consecutiveWorseResults >= CAL_MAX_CONSECUTIVE_WORSE_STEPS) {
-              Serial.println("\n>> OPTIMIZATION: Stopping early. Diminishing returns detected.");
-              Serial.println("   Further increasing pulse width is not yielding better stability.");
-              goto finish_calibration;
-          }
-      }
-
-      // OPTIMIZATION: Update lower bound for next pulse width
-      // If 40ms pulse needs 200ms pause, 50ms pulse will likely need >= 200ms.
-      if (minPauseForThisPulse > searchLowerBound) {
-          searchLowerBound = minPauseForThisPulse;
-          // Cap optimization at configured limit
-          if (searchLowerBound > CAL_OPTIMIZATION_LOWER_BOUND_CAP) searchLowerBound = CAL_OPTIMIZATION_LOWER_BOUND_CAP;
-          Serial.printf("     (Optimization: Next search starts at %lu ms)\n", searchLowerBound);
-      }
 
       // INTELLIGENT EARLY EXIT (Legacy Check - kept for safety, but Trend Check above is main driver now)
       // If we already have a great result (< 1.0% Jitter) and results are getting worse, stop.
