@@ -1,4 +1,454 @@
 Pump type: https://de.aliexpress.com/item/1005010143451204.html?spm=a2g0o.detail.pcDetailTopMoreOtherSeller.1.1aafdrywdrywGH&gps-id=pcDetailTopMoreOtherSeller&scm=1007.40050.354490.0&scm_id=1007.40050.354490.0&scm-url=1007.40050.354490.0&pvid=63fef1b4-f90a-4889-b5dc-a476a2e55b9f&_t=gps-id:pcDetailTopMoreOtherSeller,scm-url:1007.40050.354490.0,pvid:63fef1b4-f90a-4889-b5dc-a476a2e55b9f,tpp_buckets:668%232846%238109%231935&pdp_ext_f=%7B%22order%22%3A%2233%22%2C%22spu_best_type%22%3A%22order%22%2C%22eval%22%3A%221%22%2C%22sceneId%22%3A%2230050%22%2C%22fromPage%22%3A%22recommend%22%7D&pdp_npi=6%40dis%21CHF%217.21%216.99%21%21%2163.08%2161.16%21%40211b629217666777857357377e7d41%2112000051300927212%21rec%21CH%211702792198%21XZ%211%210%21n_tag%3A-29919%3Bd%3A94cdc6e3%3Bm03_new_user%3A-29895&utparam-url=scene%3ApcDetailTopMoreOtherSeller%7Cquery_from%3A%7Cx_object_id%3A1005010143451204%7C_p_origin_prod%3A
 Pump strokes total: 4075
-Calibration run: 
+Calibration cycles: 5x
 
+
+
+==========================================
+       CALIBRATION COMPLETE
+==========================================
+Total Duration: 10 min 34 sec
+Raw Optimal Values (Lab Conditions):
+  Pulse: 40 ms
+  Pause: 255 ms
+  Cycle: 295 ms
+  Learned Elasticity Ratio: 4.4
+------------------------------------------
+RECOMMENDED SETTINGS (Robust Operation):
+  Pulse: 40 ms
+  Pause: 293 ms  (includes +15% safety margin)
+  Cycle: 333 ms
+  Ratio: 1.02 Drops/Stroke (Measured: 61 drops / 60 pulses)
+>> SETTINGS APPLIED FOR CONTINUOUS MODE.
+==========================================
+
+
+##########################################
+       MULTI-CYCLE CALIBRATION REPORT
+##########################################
+Cycle | Pulse | Pause | Ratio | Jitter | Duration
+------+-------+-------+-------+--------+----------
+  1   | 40 ms | 250 ms |  4.3  |  1.7%  | 10 min 34 s
+  2   | 50 ms | 250 ms |  4.8  |  1.2%  | 18 min 3 s
+  3   | 40 ms | 255 ms |  4.4  |  1.3%  | 10 min 34 s
+  4   | 45 ms | 290 ms |  6.4  |  1.5%  | 14 min 21 s
+  5   | 40 ms | 255 ms |  4.4  |  1.2%  | 10 min 34 s
+##########################################
+
+FINAL RECOMMENDATION (Trimmed Mean Strategy):
+  (Outliers removed: Lowest and Highest values ignored to ensure stability.)
+  Pulse Width:    45 ms (Base Avg: 41 ms)
+  Pause Duration: 290 ms (Base Avg: 253 ms + 15% margin)
+  Cycle Time:     335 ms
+##########################################
+
+Starting 15-Minute Validation Run...
+Running with Pulse: 45 ms, Pause: 290 ms
+Time (min) | Strokes | Drops | Ratio | Jitter
+---------------------------------------------
+>> DROP DETECTED! Total: 7514
+>> DROP DETECTED! Total: 7515
+>> DROP DETECTED! Total: 7516
+>> DROP DETECTED! Total: 7517
+>> DROP DETECTED! Total: 7518
+>> DROP DETECTED! Total: 7519
+>> DROP DETECTED! Total: 7520
+>> DROP DETECTED! Total: 7521
+>> DROP DETECTED! Total: 7522
+>> DROP DETECTED! Total: 7523
+>> DROP DETECTED! Total: 7524
+>> DROP DETECTED! Total: 7525
+>> DROP DETECTED! Total: 7526
+>> DROP DETECTED! Total: 7527
+>> DROP DETECTED! Total: 7528
+>> DROP DETECTED! Total: 7529
+>> DROP DETECTED! Total: 7530
+>> DROP DETECTED! Total: 7531
+>> DROP DETECTED! Total: 7532
+>> DROP DETECTED! Total: 7533
+>> DROP DETECTED! Total: 7534
+>> DROP DETECTED! Total: 7535
+>> DROP DETECTED! Total: 7536
+>> DROP DETECTED! Total: 7537
+>> DROP DETECTED! Total: 7538
+>> DROP DETECTED! Total: 7539
+>> DROP DETECTED! Total: 7540
+>> DROP DETECTED! Total: 7541
+>> DROP DETECTED! Total: 7542
+>> DROP DETECTED! Total: 7543
+>> DROP DETECTED! Total: 7544
+>> DROP DETECTED! Total: 7545
+>> DROP DETECTED! Total: 7546
+>> DROP DETECTED! Total: 7547
+>> DROP DETECTED! Total: 7548
+>> DROP DETECTED! Total: 7549
+>> DROP DETECTED! Total: 7550
+>> DROP DETECTED! Total: 7551
+>> DROP DETECTED! Total: 7552
+>> DROP DETECTED! Total: 7553
+>> DROP DETECTED! Total: 7554
+>> DROP DETECTED! Total: 7555
+>> DROP DETECTED! Total: 7556
+>> DROP DETECTED! Total: 7557
+>> DROP DETECTED! Total: 7558
+>> DROP DETECTED! Total: 7559
+>> DROP DETECTED! Total: 7560
+>> DROP DETECTED! Total: 7561
+>> DROP DETECTED! Total: 7562
+>> DROP DETECTED! Total: 7563
+>> DROP DETECTED! Total: 7564
+>> DROP DETECTED! Total: 7565
+>> DROP DETECTED! Total: 7566
+>> DROP DETECTED! Total: 7567
+>> DROP DETECTED! Total: 7568
+>> DROP DETECTED! Total: 7569
+>> DROP DETECTED! Total: 7570
+>> DROP DETECTED! Total: 7571
+>> DROP DETECTED! Total: 7572
+>> DROP DETECTED! Total: 7573
+>> DROP DETECTED! Total: 7574
+>> DROP DETECTED! Total: 7575
+>> DROP DETECTED! Total: 7576
+>> DROP DETECTED! Total: 7577
+>> DROP DETECTED! Total: 7578
+>> DROP DETECTED! Total: 7579
+>> DROP DETECTED! Total: 7580
+>> DROP DETECTED! Total: 7581
+>> DROP DETECTED! Total: 7582
+>> DROP DETECTED! Total: 7583
+>> DROP DETECTED! Total: 7584
+>> DROP DETECTED! Total: 7585
+>> DROP DETECTED! Total: 7586
+>> DROP DETECTED! Total: 7587
+>> DROP DETECTED! Total: 7588
+>> DROP DETECTED! Total: 7589
+>> DROP DETECTED! Total: 7590
+>> DROP DETECTED! Total: 7591
+>> DROP DETECTED! Total: 7592
+>> DROP DETECTED! Total: 7593
+>> DROP DETECTED! Total: 7594
+>> DROP DETECTED! Total: 7595
+>> DROP DETECTED! Total: 7596
+>> DROP DETECTED! Total: 7597
+>> DROP DETECTED! Total: 7598
+>> DROP DETECTED! Total: 7599
+>> DROP DETECTED! Total: 7600
+>> DROP DETECTED! Total: 7601
+>> DROP DETECTED! Total: 7602
+>> DROP DETECTED! Total: 7603
+>> DROP DETECTED! Total: 7604
+>> DROP DETECTED! Total: 7605
+>> DROP DETECTED! Total: 7606
+>> DROP DETECTED! Total: 7607
+>> DROP DETECTED! Total: 7608
+>> DROP DETECTED! Total: 7609
+>> DROP DETECTED! Total: 7610
+>> DROP DETECTED! Total: 7611
+>> DROP DETECTED! Total: 7612
+>> DROP DETECTED! Total: 7613
+>> DROP DETECTED! Total: 7614
+>> DROP DETECTED! Total: 7615
+>> DROP DETECTED! Total: 7616
+>> DROP DETECTED! Total: 7617
+>> DROP DETECTED! Total: 7618
+>> DROP DETECTED! Total: 7619
+>> DROP DETECTED! Total: 7620
+>> DROP DETECTED! Total: 7621
+>> DROP DETECTED! Total: 7622
+>> DROP DETECTED! Total: 7623
+>> DROP DETECTED! Total: 7624
+>> DROP DETECTED! Total: 7625
+>> DROP DETECTED! Total: 7626
+>> DROP DETECTED! Total: 7627
+>> DROP DETECTED! Total: 7628
+>> DROP DETECTED! Total: 7629
+>> DROP DETECTED! Total: 7630
+>> DROP DETECTED! Total: 7631
+>> DROP DETECTED! Total: 7632
+>> DROP DETECTED! Total: 7633
+>> DROP DETECTED! Total: 7634
+>> DROP DETECTED! Total: 7635
+>> DROP DETECTED! Total: 7636
+>> DROP DETECTED! Total: 7637
+>> DROP DETECTED! Total: 7638
+>> DROP DETECTED! Total: 7639
+>> DROP DETECTED! Total: 7640
+>> DROP DETECTED! Total: 7641
+>> DROP DETECTED! Total: 7642
+>> DROP DETECTED! Total: 7643
+>> DROP DETECTED! Total: 7644
+>> DROP DETECTED! Total: 7645
+>> DROP DETECTED! Total: 7646
+>> DROP DETECTED! Total: 7647
+>> DROP DETECTED! Total: 7648
+>> DROP DETECTED! Total: 7649
+>> DROP DETECTED! Total: 7650
+>> DROP DETECTED! Total: 7651
+>> DROP DETECTED! Total: 7652
+>> DROP DETECTED! Total: 7653
+>> DROP DETECTED! Total: 7654
+>> DROP DETECTED! Total: 7655
+>> DROP DETECTED! Total: 7656
+>> DROP DETECTED! Total: 7657
+>> DROP DETECTED! Total: 7658
+>> DROP DETECTED! Total: 7659
+>> DROP DETECTED! Total: 7660
+>> DROP DETECTED! Total: 7661
+>> DROP DETECTED! Total: 7662
+>> DROP DETECTED! Total: 7663
+>> DROP DETECTED! Total: 7664
+>> DROP DETECTED! Total: 7665
+>> DROP DETECTED! Total: 7666
+>> DROP DETECTED! Total: 7667
+>> DROP DETECTED! Total: 7668
+>> DROP DETECTED! Total: 7669
+>> DROP DETECTED! Total: 7670
+>> DROP DETECTED! Total: 7671
+>> DROP DETECTED! Total: 7672
+>> DROP DETECTED! Total: 7673
+>> DROP DETECTED! Total: 7674
+>> DROP DETECTED! Total: 7675
+>> DROP DETECTED! Total: 7676
+>> DROP DETECTED! Total: 7677
+>> DROP DETECTED! Total: 7678
+>> DROP DETECTED! Total: 7679
+>> DROP DETECTED! Total: 7680
+>> DROP DETECTED! Total: 7681
+>> DROP DETECTED! Total: 7682
+>> DROP DETECTED! Total: 7683
+1 min | 172 strokes | 169 drops | 0.98 d/s | 10.2%
+>> DROP DETECTED! Total: 7684
+>> DROP DETECTED! Total: 7685
+>> DROP DETECTED! Total: 7686
+>> DROP DETECTED! Total: 7687
+>> DROP DETECTED! Total: 7688
+>> DROP DETECTED! Total: 7689
+>> DROP DETECTED! Total: 7690
+>> DROP DETECTED! Total: 7691
+>> DROP DETECTED! Total: 7692
+>> DROP DETECTED! Total: 7693
+>> DROP DETECTED! Total: 7694
+>> DROP DETECTED! Total: 7695
+>> DROP DETECTED! Total: 7696
+>> DROP DETECTED! Total: 7697
+>> DROP DETECTED! Total: 7698
+>> DROP DETECTED! Total: 7699
+>> DROP DETECTED! Total: 7700
+>> DROP DETECTED! Total: 7701
+>> DROP DETECTED! Total: 7702
+>> DROP DETECTED! Total: 7703
+>> DROP DETECTED! Total: 7704
+>> DROP DETECTED! Total: 7705
+>> DROP DETECTED! Total: 7706
+>> DROP DETECTED! Total: 7707
+>> DROP DETECTED! Total: 7708
+>> DROP DETECTED! Total: 7709
+>> DROP DETECTED! Total: 7710
+>> DROP DETECTED! Total: 7711
+>> DROP DETECTED! Total: 7712
+>> DROP DETECTED! Total: 7713
+>> DROP DETECTED! Total: 7714
+>> DROP DETECTED! Total: 7715
+>> DROP DETECTED! Total: 7716
+>> DROP DETECTED! Total: 7717
+>> DROP DETECTED! Total: 7718
+>> DROP DETECTED! Total: 7719
+>> DROP DETECTED! Total: 7720
+>> DROP DETECTED! Total: 7721
+>> DROP DETECTED! Total: 7722
+>> DROP DETECTED! Total: 7723
+>> DROP DETECTED! Total: 7724
+>> DROP DETECTED! Total: 7725
+>> DROP DETECTED! Total: 7726
+>> DROP DETECTED! Total: 7727
+>> DROP DETECTED! Total: 7728
+>> DROP DETECTED! Total: 7729
+>> DROP DETECTED! Total: 7730
+>> DROP DETECTED! Total: 7731
+>> DROP DETECTED! Total: 7732
+>> DROP DETECTED! Total: 7733
+>> DROP DETECTED! Total: 7734
+>> DROP DETECTED! Total: 7735
+>> DROP DETECTED! Total: 7736
+>> DROP DETECTED! Total: 7737
+>> DROP DETECTED! Total: 7738
+>> DROP DETECTED! Total: 7739
+>> DROP DETECTED! Total: 7740
+>> DROP DETECTED! Total: 7741
+>> DROP DETECTED! Total: 7742
+>> DROP DETECTED! Total: 7743
+>> DROP DETECTED! Total: 7744
+>> DROP DETECTED! Total: 7745
+>> DROP DETECTED! Total: 7746
+>> DROP DETECTED! Total: 7747
+>> DROP DETECTED! Total: 7748
+>> DROP DETECTED! Total: 7749
+>> DROP DETECTED! Total: 7750
+>> DROP DETECTED! Total: 7751
+>> DROP DETECTED! Total: 7752
+>> DROP DETECTED! Total: 7753
+>> DROP DETECTED! Total: 7754
+>> DROP DETECTED! Total: 7755
+>> DROP DETECTED! Total: 7756
+>> DROP DETECTED! Total: 7757
+>> DROP DETECTED! Total: 7758
+>> DROP DETECTED! Total: 7759
+>> DROP DETECTED! Total: 7760
+>> DROP DETECTED! Total: 7761
+>> DROP DETECTED! Total: 7762
+>> DROP DETECTED! Total: 7763
+>> DROP DETECTED! Total: 7764
+>> DROP DETECTED! Total: 7765
+>> DROP DETECTED! Total: 7766
+>> DROP DETECTED! Total: 7767
+>> DROP DETECTED! Total: 7768
+>> DROP DETECTED! Total: 7769
+>> DROP DETECTED! Total: 7770
+>> DROP DETECTED! Total: 7771
+>> DROP DETECTED! Total: 7772
+>> DROP DETECTED! Total: 7773
+>> DROP DETECTED! Total: 7774
+>> DROP DETECTED! Total: 7775
+>> DROP DETECTED! Total: 7776
+>> DROP DETECTED! Total: 7777
+>> DROP DETECTED! Total: 7778
+>> DROP DETECTED! Total: 7779
+>> DROP DETECTED! Total: 7780
+>> DROP DETECTED! Total: 7781
+>> DROP DETECTED! Total: 7782
+>> DROP DETECTED! Total: 7783
+>> DROP DETECTED! Total: 7784
+>> DROP DETECTED! Total: 7785
+>> DROP DETECTED! Total: 7786
+>> DROP DETECTED! Total: 7787
+>> DROP DETECTED! Total: 7788
+>> DROP DETECTED! Total: 7789
+>> DROP DETECTED! Total: 7790
+>> DROP DETECTED! Total: 7791
+>> DROP DETECTED! Total: 7792
+>> DROP DETECTED! Total: 7793
+>> DROP DETECTED! Total: 7794
+>> DROP DETECTED! Total: 7795
+>> DROP DETECTED! Total: 7796
+>> DROP DETECTED! Total: 7797
+>> DROP DETECTED! Total: 7798
+>> DROP DETECTED! Total: 7799
+>> DROP DETECTED! Total: 7800
+>> DROP DETECTED! Total: 7801
+>> DROP DETECTED! Total: 7802
+>> DROP DETECTED! Total: 7803
+>> DROP DETECTED! Total: 7804
+>> DROP DETECTED! Total: 7805
+>> DROP DETECTED! Total: 7806
+>> DROP DETECTED! Total: 7807
+>> DROP DETECTED! Total: 7808
+>> DROP DETECTED! Total: 7809
+>> DROP DETECTED! Total: 7810
+>> DROP DETECTED! Total: 7811
+>> DROP DETECTED! Total: 7812
+>> DROP DETECTED! Total: 7813
+>> DROP DETECTED! Total: 7814
+>> DROP DETECTED! Total: 7815
+>> DROP DETECTED! Total: 7816
+>> DROP DETECTED! Total: 7817
+>> DROP DETECTED! Total: 7818
+>> DROP DETECTED! Total: 7819
+>> DROP DETECTED! Total: 7820
+>> DROP DETECTED! Total: 7821
+>> DROP DETECTED! Total: 7822
+>> DROP DETECTED! Total: 7823
+>> DROP DETECTED! Total: 7824
+>> DROP DETECTED! Total: 7825
+>> DROP DETECTED! Total: 7826
+>> DROP DETECTED! Total: 7827
+>> DROP DETECTED! Total: 7828
+>> DROP DETECTED! Total: 7829
+>> DROP DETECTED! Total: 7830
+>> DROP DETECTED! Total: 7831
+>> DROP DETECTED! Total: 7832
+>> DROP DETECTED! Total: 7833
+>> DROP DETECTED! Total: 7834
+>> DROP DETECTED! Total: 7835
+>> DROP DETECTED! Total: 7836
+>> DROP DETECTED! Total: 7837
+>> DROP DETECTED! Total: 7838
+>> DROP DETECTED! Total: 7839
+>> DROP DETECTED! Total: 7840
+>> DROP DETECTED! Total: 7841
+>> DROP DETECTED! Total: 7842
+>> DROP DETECTED! Total: 7843
+>> DROP DETECTED! Total: 7844
+>> DROP DETECTED! Total: 7845
+>> DROP DETECTED! Total: 7846
+>> DROP DETECTED! Total: 7847
+>> DROP DETECTED! Total: 7848
+>> DROP DETECTED! Total: 7849
+>> DROP DETECTED! Total: 7850
+>> DROP DETECTED! Total: 7851
+>> DROP DETECTED! Total: 7852
+>> DROP DETECTED! Total: 7853
+>> DROP DETECTED! Total: 7854
+2 min | 344 strokes | 340 drops | 0.99 d/s | 10.2%
+>> DROP DETECTED! Total: 7855
+>> DROP DETECTED! Total: 7856
+>> DROP DETECTED! Total: 7857
+>> DROP DETECTED! Total: 7858
+>> DROP DETECTED! Total: 7859
+>> DROP DETECTED! Total: 7860
+>> DROP DETECTED! Total: 7861
+>> DROP DETECTED! Total: 7862
+>> DROP DETECTED! Total: 7863
+>> DROP DETECTED! Total: 7864
+>> DROP DETECTED! Total: 7865
+>> DROP DETECTED! Total: 7866
+>> DROP DETECTED! Total: 7867
+>> DROP DETECTED! Total: 7868
+>> DROP DETECTED! Total: 7869
+>> DROP DETECTED! Total: 7870
+>> DROP DETECTED! Total: 7871
+>> DROP DETECTED! Total: 7872
+>> DROP DETECTED! Total: 7873
+>> DROP DETECTED! Total: 7874
+>> DROP DETECTED! Total: 7875
+>> DROP DETECTED! Total: 7876
+>> DROP DETECTED! Total: 7877
+>> DROP DETECTED! Total: 7878
+>> DROP DETECTED! Total: 7879
+>> DROP DETECTED! Total: 7880
+>> DROP DETECTED! Total: 7881
+>> DROP DETECTED! Total: 7882
+>> DROP DETECTED! Total: 7883
+>> DROP DETECTED! Total: 7884
+>> DROP DETECTED! Total: 7885
+>> DROP DETECTED! Total: 7886
+>> DROP DETECTED! Total: 7887
+>> DROP DETECTED! Total: 7888
+>> DROP DETECTED! Total: 7889
+>> DROP DETECTED! Total: 7890
+>> DROP DETECTED! Total: 7891
+>> DROP DETECTED! Total: 7892
+>> DROP DETECTED! Total: 7893
+>> DROP DETECTED! Total: 7894
+>> DROP DETECTED! Total: 7895
+>> DROP DETECTED! Total: 7896
+>> DROP DETECTED! Total: 7897
+>> DROP DETECTED! Total: 7898
+>> DROP DETECTED! Total: 7899
+>> DROP DETECTED! Total: 7900
+>> DROP DETECTED! Total: 7901
+>> DROP DETECTED! Total: 7902
+>> DROP DETECTED! Total: 7903
+>> DROP DETECTED! Total: 7904
+>> DROP DETECTED! Total: 7905
+>> DROP DETECTED! Total: 7906
+>> DROP DETECTED! Total: 7907
+>> DROP DETECTED! Total: 7908
+>> DROP DETECTED! Total: 7909
+>> DROP DETECTED! Total: 7910
+>> DROP DETECTED! Total: 7911
+>> DROP DETECTED! Total: 7912
+>> DROP DETECTED! Total: 7913
+>> DROP DETECTED! Total: 7914
+>> DROP DETECTED! Total: 7915
+>> DROP DETECTED! Total: 7916
+>> DROP DETECTED! Total: 7917

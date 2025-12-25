@@ -348,7 +348,6 @@ void runCalibrationStep() {
   float bestJitter = 100.0; // Initialize with worst possible jitter
   
   // Optimization: Track the lowest valid pause found so far.
-  // A stronger pulse (longer duration) will generally require at least as much pause as a weaker one.
   unsigned long searchLowerBound = CAL_PAUSE_MIN;
   int consecutiveWorseResults = 0; // Optimization counter
 
@@ -359,6 +358,18 @@ void runCalibrationStep() {
   unsigned long calibrationStartTime = millis();
   int totalSteps = (CAL_PULSE_MAX - CAL_PULSE_MIN) / CAL_PULSE_STEP + 1;
   int completedSteps = 0;
+
+  // Variable declarations moved up to avoid goto errors
+  String timeMsg;
+  unsigned long minPauseForThisPulse;
+  unsigned long dropsForMinPause;
+  float jitterForMinPause;
+  unsigned long physicsMinPause;
+  unsigned long low;
+  unsigned long high;
+  unsigned long candidatePause;
+  bool saturationDetected;
+  TestResult res;
 
   // Iterate through reasonable pulse widths
   for (unsigned long p = CAL_PULSE_MIN; p <= CAL_PULSE_MAX; p += CAL_PULSE_STEP) {
@@ -375,9 +386,8 @@ void runCalibrationStep() {
         }
     }
 
-    // 
     // Calculate Estimated Time Remaining
-    String timeMsg = "";
+    timeMsg = "";
     if (completedSteps > 0) {
         unsigned long elapsed = millis() - calibrationStartTime;
         unsigned long avgTimePerStep = elapsed / completedSteps;
@@ -393,18 +403,15 @@ void runCalibrationStep() {
 
     Serial.printf("\nTesting Pulse Width: %lu ms%s\n", p, timeMsg.c_str());
     
-    unsigned long minPauseForThisPulse = 0;
-    unsigned long dropsForMinPause = 0;
-    float jitterForMinPause = 100.0;
+    minPauseForThisPulse = 0;
+    dropsForMinPause = 0;
+    jitterForMinPause = 100.0;
     
     // PHYSICS OPTIMIZATION 1: Elasticity Ratio
-    // The hose needs time to relax. Longer pulse = more expansion = longer required pause.
-    // We enforce a minimum pause based on the pulse width.
-    // ADAPTIVE: Use the learned ratio from previous successful steps.
-    unsigned long physicsMinPause = (unsigned long)(p * currentElasticityRatio);
+    physicsMinPause = (unsigned long)(p * currentElasticityRatio);
     
     // BINARY SEARCH for Minimum Valid Pause
-    unsigned long low = searchLowerBound;
+    low = searchLowerBound;
     if (physicsMinPause > low) {
         low = physicsMinPause; // Push the search start upwards
         Serial.printf("   [Physics] Skipping pauses < %lu ms (Ratio %.1f)\n", low, currentElasticityRatio);
@@ -413,12 +420,12 @@ void runCalibrationStep() {
     // SAFETY: Ensure low is never below the absolute hardware minimum
     if (low < CAL_PAUSE_MIN) low = CAL_PAUSE_MIN;
 
-    unsigned long high = CAL_PAUSE_START;
+    high = CAL_PAUSE_START;
     // Ensure high is always >= low
     if (high < low) high = low + CAL_PAUSE_STEP;
 
-    unsigned long candidatePause = 0;
-    bool saturationDetected = false;
+    candidatePause = 0;
+    saturationDetected = false;
     
     while (low <= high) {
         if (checkAbort()) goto abort_calibration;
@@ -432,7 +439,7 @@ void runCalibrationStep() {
 
         Serial.printf("  [Range %lu-%lu] Testing Pause %lu ms... ", low, high, mid);
         
-        TestResult res = testConfiguration(p, mid);
+        res = testConfiguration(p, mid);
         
         if (res.aborted) goto abort_calibration;
         
@@ -454,22 +461,18 @@ void runCalibrationStep() {
             if (mid < 5) high = 0; else high = mid - 5; 
         } else {
             // PHYSICS OPTIMIZATION 2: Nozzle Saturation (Splatter)
-            // If we have more drops than pulses, the energy is too high for the nozzle.
-            // Increasing pulse width further is pointless.
             if (res.drops > CAL_TARGET_DROPS_MAX) {
                 Serial.printf("FAIL (Drops: %lu) -> NOZZLE SATURATION (Splatter)\n", res.drops);
                 saturationDetected = true;
-                break; // Stop search for this pulse, but allow saving of previous valid results
+                break; // Stop search for this pulse
             }
 
             // PHYSICS OPTIMIZATION 3: High Jitter Handling (Air Bubble Theory)
-            // If we have good flow (enough drops) but high jitter, it might be due to air compression
-            // during long pauses. In this case, a SHORTER pause might stabilize the flow.
             if (res.drops >= CAL_TARGET_DROPS_MIN && res.jitter > CAL_MAX_JITTER_PERCENT) {
                  Serial.printf("FAIL (Drops: %lu, Jitter: %.1f%%) -> High Jitter detected. Trying SHORTER pause.\n", res.drops, res.jitter * 100);
                  if (mid < 5) high = 0; else high = mid - 5;
             } else {
-                 // Standard Failure (Too few drops, or other issues): Need longer pause
+                 // Standard Failure
                  Serial.printf("FAIL (Drops: %lu, Jitter: %.1f%%) -> Need longer pause.\n", res.drops, res.jitter * 100);
                  low = mid + 5;
             }
@@ -494,20 +497,16 @@ void runCalibrationStep() {
       
       // 1. Check Accuracy (Primary)
       if (diffNew < diffOld) {
-          // New is closer to target (e.g. 60 vs 55).
-          // Since we already filtered for Max Jitter, any valid result is "stable enough".
-          // Prioritize getting exactly 1 drop per pulse.
           isBetter = true;
       } else if (diffNew > diffOld) {
           isBetter = false;
       } else {
-          // Accuracy is identical (e.g. both 60). Check Jitter (Secondary).
+          // Accuracy is identical. Check Jitter (Secondary).
           if (jitterForMinPause < bestJitter - 0.001) {
               isBetter = true;
           } else if (abs(jitterForMinPause - bestJitter) <= 0.001) {
               // Jitter is identical. Check Cycle Time (Tertiary).
-              // Prefer FASTER cycle time to support "Burst Mode" (multiple strokes per event).
-              // A faster cycle maintains pressure better (Air Spring effect) during bursts.
+              // Prefer FASTER cycle time to support "Burst Mode".
               if (currentCycle < minCycleTime) {
                   isBetter = true;
               }
@@ -527,49 +526,33 @@ void runCalibrationStep() {
         Serial.println("     (NEW BEST CONFIGURATION!)");
         
         // ADAPTIVE PHYSICS LEARNING
-        // Calculate the actual ratio required by this system.
-        // We use a Moving Average to smooth out outliers and learn gradually.
         float observedRatio = (float)bestPause / (float)bestPulse;
-        
-        // Apply safety factor (90% of observed)
         float safeObservedRatio = observedRatio * 0.9;
 
         // BIDIRECTIONAL LEARNING
-        // If we found a working config, we should adjust our expectations towards it.
-        // Whether it's higher (more elasticity needed) or lower (Air Spring works),
-        // we want the search start point to reflect reality.
-        
-        // Moving Average: New = (Old + New) / 2
         currentElasticityRatio = (currentElasticityRatio + safeObservedRatio) / 2.0;
         Serial.printf("     (Learning: Hose elasticity requires ratio ~%.1f [Moving Avg])\n", currentElasticityRatio);
         
         // OPTIMIZATION: Update lower bound for next pulse width
-        // If we found a very fast pause (Air Spring), we should allow the next search to start low too.
-        // So we only raise the lower bound if the current best pause is significantly higher.
         if (minPauseForThisPulse > searchLowerBound) {
-             // Only raise if it's a "slow" config. If it's fast, keep the bound low.
              searchLowerBound = minPauseForThisPulse;
-             // Cap optimization at configured limit
              if (searchLowerBound > CAL_OPTIMIZATION_LOWER_BOUND_CAP) searchLowerBound = CAL_OPTIMIZATION_LOWER_BOUND_CAP;
              Serial.printf("     (Optimization: Next search starts at %lu ms)\n", searchLowerBound);
         } else if (minPauseForThisPulse < searchLowerBound) {
-             // If we found a faster valid pause than expected, LOWER the bound for next time!
              searchLowerBound = minPauseForThisPulse;
              if (searchLowerBound < CAL_PAUSE_MIN) searchLowerBound = CAL_PAUSE_MIN;
              Serial.printf("     (Optimization: Found faster valid config! Lowering search start to %lu ms)\n", searchLowerBound);
         }
 
-      // INTELLIGENT EARLY EXIT (Legacy Check - kept for safety, but Trend Check above is main driver now)
-      // If we already have a great result (< 1.0% Jitter) and results are getting worse, stop.
+      // INTELLIGENT EARLY EXIT
       if (bestJitter < CAL_SMART_EXIT_JITTER_THRESHOLD) {
           if (jitterForMinPause > bestJitter) {
-              // Already handled by main trend counter above, but kept for specific threshold logic
+              // Already handled by main trend counter above
           }
       }
 
     } else {
         Serial.println("  => No valid config found for this pulse width.");
-        // If we have a good result and suddenly can't find valid configs (e.g. too fast), maybe stop too?
         consecutiveWorseResults++;
         if (consecutiveWorseResults >= CAL_MAX_CONSECUTIVE_WORSE_STEPS) {
              Serial.println("\n>> OPTIMIZATION: Stopping early. Cannot find valid configs anymore.");
@@ -585,7 +568,8 @@ void runCalibrationStep() {
     completedSteps++;
     preferences.putULong("strokes", strokeCounter); // Save progress
   }
-  
+  } // End of loop
+
 finish_calibration:
   Serial.println("\n==========================================");
   Serial.println("       CALIBRATION COMPLETE");
