@@ -1047,29 +1047,11 @@ void loop() {
             Serial.println("##########################################\n");
 
             // Start Validation Run
-            Serial.println("Starting 15-Minute Validation Run...");
-            Serial.printf("Running with Pulse: %lu ms, Pause: %lu ms\n", recPulse, recPause);
-            Serial.println("Time (min) | Strokes | Drops | Ratio | Jitter");
-            Serial.println("---------------------------------------------");
-
-            validationPulse = recPulse;
-            validationPause = recPause;
-            validationStartTime = millis();
-            lastValidationLogTime = millis();
-            validationStrokes = 0;
-            validationDrops = 0;
-            validationStartDrops = dropCount;
+            runValidation(recPulse, recPause);
             
-            // Reset Jitter Analysis for Validation
-            dropTimestampIndex = 0;
-            
-            // Reset Pump State for Validation
-            isPulseHigh = false;
-            lastPulseSwitchTime = millis();
-            digitalWrite(PUMP_PIN, LOW);
-
-            currentState = STATE_VALIDATION;
-            setStatusColor(0, 0, 255); // Blue for Validation
+            // After validation, go to READY
+            currentState = STATE_READY;
+            setStatusColor(0, 255, 0); // Green
         } else {
             // If calibration failed or no cycles completed
             currentState = STATE_READY;
@@ -1086,63 +1068,7 @@ void loop() {
       setStatusColor(0, 255, 0);
       break;
 
-    case STATE_VALIDATION:
-      // Check for Abort (Boot Button)
-      if (bootDebouncer.fell()) {
-        Serial.println("\nValidation Aborted by User.");
-        digitalWrite(PUMP_PIN, LOW);
-        currentState = STATE_READY;
-        setStatusColor(0, 255, 0);
-        break;
-      }
 
-      // Check for Timeout
-      if (millis() - validationStartTime >= (unsigned long)CAL_VALIDATION_DURATION_MIN * 60 * 1000) {
-        Serial.println("\nValidation Run Complete.");
-        digitalWrite(PUMP_PIN, LOW);
-        currentState = STATE_READY;
-        setStatusColor(0, 255, 0);
-        break;
-      }
-
-      // Pumping Logic
-      {
-        unsigned long currentMillis = millis();
-        if (isPulseHigh) {
-          // In Validation Mode, we use pumpPulse() which is blocking for the pulse duration.
-          // So we don't need the non-blocking state machine logic for the pulse part here if we switch to pumpPulse.
-          // HOWEVER: pumpPulse() is blocking. The original code here was non-blocking.
-          // To use pumpPulse() (blocking) inside this loop, we need to change the logic slightly.
-          // But wait, pumpPulse() handles the entire pulse (UP -> HOLD -> DOWN).
-          // So we only trigger it when the PAUSE is over.
-        } 
-        
-        // REVISED LOGIC FOR BLOCKING PUMP_PULSE
-        // We only track the PAUSE time. When pause is over, we call pumpPulse() (which blocks for ~50ms), then reset the timer.
-        if (currentMillis - lastPulseSwitchTime >= validationPause) {
-            pumpPulse(validationPulse);
-            lastPulseSwitchTime = millis(); // Reset timer AFTER the pulse
-            validationStrokes++;
-        }
-
-        // Logging (Every Minute)
-        if (currentMillis - lastValidationLogTime >= 60000) {
-            unsigned long currentDrops = dropCount - validationStartDrops;
-            float ratio = (validationStrokes > 0) ? (float)currentDrops / validationStrokes : 0.0;
-            unsigned long elapsedMin = (currentMillis - validationStartTime) / 60000;
-            
-            // Calculate Jitter for this minute (based on the first 100 drops captured)
-            float currentJitter = calculateJitter();
-            
-            Serial.printf("%lu min | %lu strokes | %lu drops | %.2f d/s | %.1f%%\n", elapsedMin, validationStrokes, currentDrops, ratio, currentJitter * 100);
-            
-            lastValidationLogTime = currentMillis;
-            
-            // Reset Jitter Buffer for next minute's sample
-            dropTimestampIndex = 0;
-        }
-      }
-      break;
 
     case STATE_PUMPING:
       // Check for Stop (External Button)

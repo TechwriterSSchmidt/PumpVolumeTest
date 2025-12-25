@@ -97,7 +97,7 @@ The calibrator tests many combinations of Pulse and Pause durations. To determin
     *   If two settings have the same accuracy (e.g., both delivered exactly 60 drops), the one with the lower Jitter (standard deviation) wins.
     *   *Note:* Differences smaller than 0.1% are treated as equal.
 
-3.  **Cycle Time (Tie-Breaker)**
+3.  **Cycle Time (Tertiary Priority)**
     *   **Goal:** Efficiency for "Burst Mode".
     *   If Accuracy and Stability are identical, the system prefers the **Faster Cycle Time** (Shorter Pause).
     *   *Why?* Modern chain oilers often use "Burst Mode" (e.g., 2-3 strokes in rapid succession). A faster cycle time maintains pressure better between these strokes (Air Spring Effect), ensuring the second and third strokes are just as effective as the first.
@@ -106,7 +106,8 @@ The calibrator tests many combinations of Pulse and Pause durations. To determin
 When finished, the LED turns **Green**.
 The Serial Monitor will display:
 *   **Raw Values**: The absolute physical limit found.
-*   **Recommended Settings**: The limit + **15% Safety Margin**.
+*   **Recommended Settings**: The limit + **0% Safety Margin** (Factor 1.0).
+    *   *Why no margin?* In dynamic systems with air/elasticity ("Air Spring"), adding a pause margin allows the pressure to drop too much, destabilizing the next stroke. The system is most stable at its natural resonance frequency.
 The system automatically applies these recommended settings for Continuous Mode.
 
 ### 7. Multi-Cycle Calibration (Thermal Drift)
@@ -115,16 +116,15 @@ To analyze how the pump behaves as it warms up (Thermal Drift), you can configur
 *   It enforces a cool-down period between cycles.
 *   **Final Report**: After the last cycle, a summary table is printed to the Serial Monitor, showing the drift in Pulse, Pause, and Flow Ratio over time.
 
-### 7. Validation Run
-Immediately after the final recommendation is calculated, the system automatically starts a **15-Minute Validation Run**.
-*   **Purpose**: To verify that the calculated settings (Pulse + Safety Margin) remain stable over a longer period of continuous operation.
-*   **Operation**: The pump runs at the recommended settings.
-*   **Logging**: Every minute, a status line is printed:
-    *   `Time`: Elapsed minutes.
-    *   `Strokes`: Total strokes in this run.
-    *   `Drops`: Total drops detected.
-    *   `Ratio`: Drops per Stroke (should be close to 1.00).
-    *   `Jitter`: Stability of the drop intervals (should be < 5%).
+### 8. Real-World Burst Validation
+Immediately after the final recommendation is calculated, the system automatically starts a **Real-World Burst Validation**.
+*   **Purpose**: To verify that the settings work in realistic "riding conditions" (long pauses followed by bursts).
+*   **Scenario A**: 5x Bursts of **2 Strokes** (20s pause between bursts).
+*   **Scenario B**: 5x Bursts of **3 Strokes** (20s pause between bursts).
+*   **Success Criteria**:
+    *   **Green**: Perfect 1:1 drop delivery in all bursts.
+    *   **Yellow**: Minor deviations (90-110% accuracy).
+    *   **Red**: Unstable (e.g., first drop missing after long pause).
 *   **Abort**: You can stop this run at any time by pressing the **Boot Button**.
 
 ---
@@ -140,9 +140,16 @@ We measure the **Standard Deviation** of the time intervals between drops.
 ### Fast Binary Search & Optimization
 Instead of testing every millisecond, the algorithm:
 *   **Divides & Conquers**: It tests the middle of the range to quickly find limits.
-*   **Learns**: It adapts the search window based on previous results.
+*   **Learns**: It adapts the search window based on previous results (Bidirectional Learning).
 *   **Smart Exit**: If the system finds a highly stable configuration (Jitter < 0.8%) and subsequent tests with longer pulses yield worse results, it stops early.
 *   **Trend Stop**: If increasing the pulse width does not improve stability for 2 consecutive steps (Diminishing Returns), the calibration stops to save time.
+
+### Air Spring Theory & Bidirectional Learning
+The system uses advanced logic to handle "Air Spring" effects (trapped air acting as a buffer):
+*   **Symptom**: Good flow volume but high jitter (oscillation).
+*   **Diagnosis**: The pause is too long, allowing the air bubble to expand and contract chaotically.
+*   **Action**: The algorithm tries **shorter** pauses to keep the system under constant pressure ("Dynamic Tension").
+*   **Learning**: If a faster timing works, the system updates its internal "Elasticity Ratio" downwards, speeding up future search steps.
 
 ### Safety & Protection
 *   **Auto-Clear**: If a test runs too fast and causes a continuous stream, the system pauses and waits for the sensor to clear.
@@ -183,7 +190,7 @@ To ensure the recommended settings are robust against outliers (e.g., a single "
 1.  **Sort**: All cycle results are sorted.
 2.  **Filter**: The lowest and highest values are ignored (outliers).
 3.  **Average**: The remaining values are averaged.
-4.  **Safety**: The Pulse is rounded UP (to ensure force), and the Pause gets a safety margin.
+4.  **Safety**: The Pulse is rounded UP (to ensure force).
 
 **Example Calculation:**
 
@@ -195,7 +202,7 @@ To ensure the recommended settings are robust against outliers (e.g., a single "
 | 4 | 50 ms | 450 ms | *Ignored (Highest)* |
 
 *   **Avg Pulse**: (42+45)/2 = 43.5 ms -> Rounded Up (5ms step) -> **45 ms** (Force Reserve)
-*   **Avg Pause**: (350+360)/2 = 355 ms -> +15% Margin -> **408 ms** (Refill Reserve)
+*   **Avg Pause**: (350+360)/2 = 355 ms -> +0% Margin -> **355 ms** (Resonance Point)
 
 This ensures the pump works reliably in both cold and warm conditions without being skewed by extreme values.
 
