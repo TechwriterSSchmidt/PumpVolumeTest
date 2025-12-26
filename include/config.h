@@ -41,7 +41,7 @@ const unsigned long CAL_BREAK_IN_STROKES = 10000;
 // ============================================================================
 // Pulse Width Search Range (ms)
 const unsigned long CAL_PULSE_MIN = 80;
-const unsigned long CAL_PULSE_MAX = 110;
+const unsigned long CAL_PULSE_MAX = 120;
 const unsigned long CAL_PULSE_STEP = 10;
 
 // Pause Duration Search Range (ms)
