@@ -555,7 +555,10 @@ void runCalibrationStep() {
     } else { // Else for if (candidatePause != 0)
         Serial.println("  => No valid config found for this pulse width.");
         consecutiveWorseResults++;
-        if (consecutiveWorseResults >= CAL_MAX_CONSECUTIVE_WORSE_STEPS) {
+        
+        // Only stop if we have found at least one valid config before (bestPulse != 0)
+        // If we haven't found anything yet, we must keep searching!
+        if (bestPulse != 0 && consecutiveWorseResults >= CAL_MAX_CONSECUTIVE_WORSE_STEPS) {
              Serial.println("\n>> OPTIMIZATION: Stopping early. Cannot find valid configs anymore.");
              goto finish_calibration;
         }
