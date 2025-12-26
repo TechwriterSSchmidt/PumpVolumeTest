@@ -108,7 +108,14 @@ const unsigned long CAL_COOLDOWN_MS = 30000; // 30 Seconds
 // Instead of continuous running, we simulate real-world "Bursts".
 const int CAL_VALIDATION_BURST_PAUSE_SEC = 45; // Time between bursts (simulating riding)
 const int CAL_VALIDATION_REPEATS = 10;          // How many bursts to test per scenario
-const unsigned long BURST_FIRST_PULSE_ADDED_MS = 20; // Extra time for first pulse in burst to overcome stiction/pressure loss
+
+// Priming Search Settings (Auto-Discovery)
+// The system will try to find the optimal "Priming Pulse" (extra time for the first stroke)
+// by testing 1-stroke bursts with increasing added time.
+const int CAL_PRIMING_SEARCH_REPEATS = 3;       // How many successes needed to accept a priming value
+const unsigned long CAL_PRIMING_START_MS = 0;   // Start searching at +0ms
+const unsigned long CAL_PRIMING_STEP_MS = 10;   // Increase by 10ms if failed
+const unsigned long CAL_PRIMING_MAX_MS = 60;    // Stop searching if we reach +60ms
 
 // Pre-Calibration Bleed
 // Runs before the first calibration cycle to flush air bubbles and warm up the oil.
@@ -124,7 +131,7 @@ const bool PUMP_USE_PWM = true;
 const int PUMP_PWM_FREQ = 5000;      // 5 kHz is safe for most solenoids
 const int PUMP_PWM_CHANNEL = 0;      // ESP32 LEDC Channel
 const int PUMP_PWM_RESOLUTION = 8;   // 8-bit resolution (0-255)
-const int PUMP_RAMP_UP_MS = 12;      // Soft-Start duration (Generic: 12ms)
-const int PUMP_RAMP_DOWN_MS = 12;    // Soft-Stop duration (Generic: 12ms)
+const int PUMP_RAMP_UP_MS = 10;      // Soft-Start duration (Generic: 12ms)
+const int PUMP_RAMP_DOWN_MS = 10;    // Soft-Stop duration (Generic: 12ms)
 
 #endif

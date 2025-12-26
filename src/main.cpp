@@ -645,8 +645,65 @@ void runValidation(unsigned long pulse, unsigned long pause) {
     Serial.println("\n==========================================");
     Serial.println("       REAL-WORLD BURST VALIDATION");
     Serial.println("==========================================");
-    Serial.printf("Testing Bursts with Pulse: %lu ms (First Pulse +%lu ms), Pause: %lu ms\n", pulse, BURST_FIRST_PULSE_ADDED_MS, pause);
+    Serial.printf("Base Settings: Pulse %lu ms / Pause %lu ms\n", pulse, pause);
     Serial.printf("Simulating Riding Conditions: %d sec pause between bursts.\n", CAL_VALIDATION_BURST_PAUSE_SEC);
+    
+    // --- PHASE 1: FIND OPTIMAL PRIMING PULSE ---
+    Serial.println("\n>>> PHASE 1: DETERMINING OPTIMAL PRIMING PULSE <<<");
+    Serial.println("(Testing 1-stroke bursts with increasing pulse width until stable)");
+    
+    unsigned long optimalPrimingAddedMs = 0;
+    bool primingFound = false;
+
+    for (unsigned long added = CAL_PRIMING_START_MS; added <= CAL_PRIMING_MAX_MS; added += CAL_PRIMING_STEP_MS) {
+        Serial.printf("\nTesting Priming +%lu ms (Pulse: %lu ms)... ", added, pulse + added);
+        
+        int successes = 0;
+        for (int i = 0; i < CAL_PRIMING_SEARCH_REPEATS; i++) {
+            if (checkAbort()) return;
+            
+            // Wait for system to settle (Simulate Riding)
+            Serial.printf("[%d/%d] Wait %ds... ", i+1, CAL_PRIMING_SEARCH_REPEATS, CAL_VALIDATION_BURST_PAUSE_SEC);
+            
+            unsigned long steps = CAL_VALIDATION_BURST_PAUSE_SEC * 10;
+            for(unsigned long w=0; w<steps; w++) { 
+                if (checkAbort()) return;
+                delay(100);
+            }
+            
+            unsigned long dropsBefore = dropCount;
+            pumpPulse(pulse + added);
+            delay(2000); // Wait for drop
+            unsigned long dropsAfter = dropCount;
+            
+            if (dropsAfter > dropsBefore) {
+                Serial.print("OK. ");
+                successes++;
+            } else {
+                Serial.print("FAIL. ");
+                break; // Stop repeats for this setting, it's not reliable
+            }
+        }
+        
+        if (successes == CAL_PRIMING_SEARCH_REPEATS) {
+            optimalPrimingAddedMs = added;
+            primingFound = true;
+            Serial.printf("\n>> SUCCESS! Optimal Priming is +%lu ms.\n", optimalPrimingAddedMs);
+            break;
+        } else {
+             Serial.println("-> Unstable.");
+        }
+    }
+
+    if (!primingFound) {
+        Serial.println("\n>> WARNING: Could not find stable priming pulse within range.");
+        Serial.printf(">> Using Max (+%lu ms) for validation.\n", CAL_PRIMING_MAX_MS);
+        optimalPrimingAddedMs = CAL_PRIMING_MAX_MS;
+    }
+
+    // --- PHASE 2: FULL VALIDATION ---
+    Serial.println("\n>>> PHASE 2: FULL SCENARIO VALIDATION (1-5 Strokes) <<<");
+    Serial.printf("Using Priming: +%lu ms for first stroke of each burst.\n", optimalPrimingAddedMs);
     
     int totalDropsAll = 0;
     int totalStrokesAll = 0;
@@ -671,7 +728,7 @@ void runValidation(unsigned long pulse, unsigned long pause) {
             // Fire strokes
             for(int s=0; s<burstSize; s++) {
                 unsigned long p = pulse;
-                if (s == 0) p += BURST_FIRST_PULSE_ADDED_MS; // Boost first pulse
+                if (s == 0) p += optimalPrimingAddedMs; // Boost first pulse
                 pumpPulse(p);
                 delay(pause);
             }
@@ -727,7 +784,7 @@ void runValidation(unsigned long pulse, unsigned long pause) {
     Serial.printf("Successful Bursts: %d\n", successfulBurstsAll);
     Serial.println("------------------------------------------");
     Serial.printf("OVERALL ACCURACY: %.2f Drops/Stroke\n", totalRatio);
-    Serial.printf("STRATEGY: Priming Pulse (+%lu ms on first stroke)\n", BURST_FIRST_PULSE_ADDED_MS);
+    Serial.printf("STRATEGY: Priming Pulse (+%lu ms on first stroke)\n", optimalPrimingAddedMs);
     
     if (successfulBurstsAll == totalBurstsAll) {
         Serial.println(">> RESULT: PERFECT! The configuration is robust.");
@@ -781,7 +838,7 @@ void runValidation(unsigned long pulse, unsigned long pause) {
     
     Serial.println("\n>> FINAL RECOMMENDATION:");
     Serial.printf("   Use Pulse: %lu ms / Pause: %lu ms\n", pulse, pause);
-    Serial.printf("   *IMPORTANT*: For bursts after long pauses (>%ds), add +%lu ms to the first pulse (Priming).\n", CAL_VALIDATION_BURST_PAUSE_SEC, BURST_FIRST_PULSE_ADDED_MS);
+    Serial.printf("   *IMPORTANT*: For bursts after long pauses (>%ds), add +%lu ms to the first pulse (Priming).\n", CAL_VALIDATION_BURST_PAUSE_SEC, optimalPrimingAddedMs);
     Serial.println("==========================================");
 }
 
