@@ -121,8 +121,8 @@ Immediately after the final recommendation is calculated, the system automatical
 *   **Purpose**: To verify that the settings work in realistic "riding conditions" (long pauses followed by bursts).
 *   **Scenarios**: The system tests **1, 2, 3, 4, and 5-stroke bursts**.
 *   **Procedure**:
-    *   For each burst size (1 to 5), it performs **5 repetitions**.
-    *   Between bursts, it waits **20 seconds** (simulating riding time).
+    *   For each burst size (1 to 5), it performs **10 repetitions**.
+    *   Between bursts, it waits **45 seconds** (simulating riding time).
 *   **Success Criteria**:
     *   **Green**: Perfect 1:1 drop delivery in all bursts (e.g., 5 drops for a 5-stroke burst).
     *   **Yellow**: Minor deviations (90-110% accuracy).

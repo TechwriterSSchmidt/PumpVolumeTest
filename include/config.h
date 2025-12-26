@@ -53,7 +53,7 @@ const unsigned long CAL_PAUSE_STEP = 5;     // Resolution (not strictly used in 
 // Calibration Logic
 const int CAL_PRIMING_PULSES = 20;      // Pulses to pressurize hose before measuring (increased to flush warm oil)
 const int CAL_TEST_PULSES = 60;         // Number of pulses to test per step
-const int CAL_TARGET_DROPS_MIN = 50;    // Minimum acceptable drops for 60 pulses
+const int CAL_TARGET_DROPS_MIN = 58;    // Minimum acceptable drops for 60 pulses (Strict 1:1)
 const int CAL_TARGET_DROPS_MAX = 65;    // Maximum acceptable drops for 60 pulses
 
 // Stability Criteria
@@ -65,7 +65,7 @@ const float CAL_MAX_JITTER_PERCENT = 0.05;
 // Safety Factor
 // Added to the experimentally found minimum pause to ensure reliability.
 // 1.15 = +15% safety margin
-const float CAL_SAFETY_MARGIN_FACTOR = 1.00;
+const float CAL_SAFETY_MARGIN_FACTOR = 1.10;
 
 // Recommendation Settings
 // Rounding for Pulse Width Recommendation (e.g. 5ms).
