@@ -40,8 +40,8 @@ const unsigned long CAL_BREAK_IN_STROKES = 10000;
 // AUTO-CALIBRATION SETTINGS
 // ============================================================================
 // Pulse Width Search Range (ms)
-const unsigned long CAL_PULSE_MIN = 80;
-const unsigned long CAL_PULSE_MAX = 120;
+const unsigned long CAL_PULSE_MIN = 60;
+const unsigned long CAL_PULSE_MAX = 110;
 const unsigned long CAL_PULSE_STEP = 10;
 
 // Pause Duration Search Range (ms)
@@ -65,7 +65,7 @@ const float CAL_MAX_JITTER_PERCENT = 0.05;
 // Safety Factor
 // Added to the experimentally found minimum pause to ensure reliability.
 // 1.15 = +15% safety margin
-const float CAL_SAFETY_MARGIN_FACTOR = 1.00;
+const float CAL_SAFETY_MARGIN_FACTOR = 1.10;
 
 // Recommendation Settings
 // Rounding for Pulse Width Recommendation (e.g. 5ms).
