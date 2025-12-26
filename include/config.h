@@ -65,7 +65,7 @@ const float CAL_MAX_JITTER_PERCENT = 0.05;
 // Safety Factor
 // Added to the experimentally found minimum pause to ensure reliability.
 // 1.15 = +15% safety margin
-const float CAL_SAFETY_MARGIN_FACTOR = 1.05;
+const float CAL_SAFETY_MARGIN_FACTOR = 1.00;
 
 // Recommendation Settings
 // Rounding for Pulse Width Recommendation (e.g. 5ms).
