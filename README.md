@@ -2,6 +2,12 @@
 
 This firmware is an automatic analysis tool for 12V metering pumps (chain oilers). It uses **Auto-Calibration** and **Stability Analysis** to find the perfect flow settings where the pump and hydraulic system work in resonance.
 
+## Support my projects
+
+Your tip motivates me to continue developing cool stuff for the DIY community. Thank you very much for your support!
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/D1D01HVT9A)
+
 ## Hardware Setup
 *   **Microcontroller**: ESP32-S3
 *   **Pump Driver**: MOSFET Module (e.g., HW-197), 5V Logic, 12V Load.
