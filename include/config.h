@@ -25,7 +25,7 @@ const int NUM_LEDS = 1;
 // Used on startup or if calibration fails.
 // Purpose: Quickly fill the hose with oil and bleed air bubbles.
 const unsigned long DEFAULT_BLEED_PULSE_MS = 55;
-const unsigned long DEFAULT_BLEED_PAUSE_MS = 2000;
+const unsigned long DEFAULT_BLEED_PAUSE_MS = 1500;
 
 // Debounce Settings (ms)
 const int BUTTON_DEBOUNCE_MS = 25;
@@ -34,27 +34,27 @@ const int DROP_SENSOR_MIN_WIDTH_MS = 4; // Minimum signal width to be considered
 
 // Break-in Period
 // Number of strokes required before the pump is considered mechanically stable.
-const unsigned long CAL_BREAK_IN_STROKES = 10000;
+const unsigned long CAL_BREAK_IN_STROKES = 15000;
 
 // ============================================================================
 // AUTO-CALIBRATION SETTINGS
 // ============================================================================
 // Pulse Width Search Range (ms)
-const unsigned long CAL_PULSE_MIN = 45;
-const unsigned long CAL_PULSE_MAX = 80;
+const unsigned long CAL_PULSE_MIN = 55;
+const unsigned long CAL_PULSE_MAX = 65;
 const unsigned long CAL_PULSE_STEP = 5;
 
 // Pause Duration Search Range (ms)
 // Binary Search Range: [MIN, MAX]
-const unsigned long CAL_PAUSE_MIN = 215;     // Lower bound for binary search
-const unsigned long CAL_PAUSE_START = 500;   // Upper bound for binary search (Max Pause - Optimization Limit)
-const unsigned long CAL_PAUSE_STEP = 5;     // Resolution (not strictly used in binary search but good for reference)
+const unsigned long CAL_PAUSE_MIN = 1500;     // Lower bound for binary search
+const unsigned long CAL_PAUSE_START = 2500;   // Upper bound for binary search (Max Pause - Optimization Limit)
+const unsigned long CAL_PAUSE_STEP = 100;     // Resolution (not strictly used in binary search but good for reference)
 
 // Calibration Logic
 const int CAL_PRIMING_PULSES = 20;      // Pulses to pressurize hose before measuring (increased to flush warm oil)
-const int CAL_TEST_PULSES = 50;         // Number of pulses to test per step
-const int CAL_TARGET_DROPS_MIN = 45;    // Minimum acceptable drops for 60 pulses (Strict 1:1)
-const int CAL_TARGET_DROPS_MAX = 55;    // Maximum acceptable drops for 60 pulses
+const int CAL_TEST_PULSES = 25;         // Number of pulses to test per step
+const int CAL_TARGET_DROPS_MIN = 22;    // Minimum acceptable drops for 60 pulses (Strict 1:1)
+const int CAL_TARGET_DROPS_MAX = 28;    // Maximum acceptable drops for 60 pulses
 
 // Stability Criteria
 // Maximum allowed jitter (Standard Deviation / Average Interval).
@@ -122,9 +122,9 @@ const unsigned long CAL_PRIMING_MAX_MS = 60;    // Stop searching if we reach +6
 // Pre-Calibration Bleed
 // Runs before the first calibration cycle to flush air bubbles and warm up the oil.
 const bool CAL_ENABLE_PRE_BLEED = true;
-const unsigned long CAL_PRE_BLEED_DURATION_MS = 30000; // 30 Seconds
-const unsigned long CAL_PRE_BLEED_PULSE_MS = 80;
-const unsigned long CAL_PRE_BLEED_PAUSE_MS = 250;      // Fast pumping to force bubbles out
+const unsigned long CAL_PRE_BLEED_DURATION_MS = 10000; // 30 Seconds
+const unsigned long CAL_PRE_BLEED_PULSE_MS = 55;
+const unsigned long CAL_PRE_BLEED_PAUSE_MS = 500;      // Fast pumping to force bubbles out
 
 // PWM Soft-Start / Soft-Stop (Silent Mode)
 // Instead of hard 12V pulses, we ramp the voltage up and down.
