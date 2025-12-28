@@ -25,7 +25,7 @@ const int NUM_LEDS = 1;
 // Used on startup or if calibration fails.
 // Purpose: Quickly fill the hose with oil and bleed air bubbles.
 const unsigned long DEFAULT_BLEED_PULSE_MS = 55;
-const unsigned long DEFAULT_BLEED_PAUSE_MS = 1500;
+const unsigned long DEFAULT_BLEED_PAUSE_MS = 2000;
 
 // Debounce Settings (ms)
 const int BUTTON_DEBOUNCE_MS = 25;
@@ -46,9 +46,9 @@ const unsigned long CAL_PULSE_STEP = 5;
 
 // Pause Duration Search Range (ms)
 // Binary Search Range: [MIN, MAX]
-const unsigned long CAL_PAUSE_MIN = 1500;     // Lower bound for binary search
-const unsigned long CAL_PAUSE_START = 2500;   // Upper bound for binary search (Max Pause - Optimization Limit)
-const unsigned long CAL_PAUSE_STEP = 100;     // Resolution (not strictly used in binary search but good for reference)
+const unsigned long CAL_PAUSE_MIN = 1800;     // Lower bound for binary search
+const unsigned long CAL_PAUSE_START = 2200;   // Upper bound for binary search (Max Pause - Optimization Limit)
+const unsigned long CAL_PAUSE_STEP = 50;     // Resolution (not strictly used in binary search but good for reference)
 
 // Calibration Logic
 const int CAL_PRIMING_PULSES = 20;      // Pulses to pressurize hose before measuring (increased to flush warm oil)

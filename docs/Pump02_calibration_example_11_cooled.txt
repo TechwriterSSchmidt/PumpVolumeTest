@@ -4,3 +4,358 @@ Calibration cycles: 5x
 Burst test: activated
 NEW: Stiffer tube
 NEW: Oil cooled down to 10°C
+
+---- Opened the serial port COM5 ----
+ESP-ROM:esp32s3-20210327
+Build:Mar 27 2021
+rst:0x1 (POWERON),boot:0x8 (SPI_FAST_FLASH_BOOT)
+SPIWP:0xee
+mode:DIO, clock div:1
+load:0x3fce3808,len:0x4bc
+load:0x403c9700,len:0xbd8
+load:0x403cc700,len:0x2a0c
+entry 0x403c98d0
+Smart Pump Calibrator (ESP32-S3)
+--------------------------------
+Total Lifetime Strokes: 148298
+Break-in Period: COMPLETE
+Flash Size: 16 MB
+PSRAM Size: 7 MB
+--------------------------------
+State: READY (Green).
+  - External Button (GPIO 5): Toggle Continuous Pumping (ON/OFF)
+  - Boot Button (GPIO 0): Start/Stop AUTO-CALIBRATION
+  - Current Config: Pulse 55 ms / Pause 2000 ms
+Boot Button -> Starting Calibration...
+
+>>> STARTING PRE-CALIBRATION BLEED <<<
+   (Flushing system for 10 s to remove air bubbles...)
+>> BLEED COMPLETE. System primed.
+
+
+>>> STARTING CALIBRATION CYCLE 1 / 5 <<<
+
+=== STARTING FAST AUTO-CALIBRATION (Binary Search) ===
+Total Lifetime Strokes: 148298
+Features: Binary Search, Quick Fail, Stability Check (Max Jitter 5%)
+Press BOOT BUTTON to STOP.
+
+Testing Pulse Width: 55 ms [ETA: Calculating...]
+  [Range 1800-2200] Testing Pause 2000 ms... OK (Drops: 25, Jitter: 0.7%)
+  [Range 1800-1995] Testing Pause 1895 ms... FAIL (Drops: 30) -> NOZZLE SATURATION (Splatter)
+  => Valid Config Found: 55 ms / 2000 ms (Cycle: 2055 ms, Jitter: 0.7%)
+     (NEW BEST CONFIGURATION!)
+     (Learning: Hose elasticity requires ratio ~17.4 [Moving Avg])
+     (Optimization: Next search starts at 250 ms)
+   => Stopping Calibration: Physical limit reached.
+
+==========================================
+       CALIBRATION COMPLETE
+==========================================
+Total Duration: 2 min 2 sec
+Raw Optimal Values (Lab Conditions):
+  Pulse: 55 ms
+  Pause: 2000 ms
+  Cycle: 2055 ms
+  Learned Elasticity Ratio: 17.4
+------------------------------------------
+RECOMMENDED SETTINGS (Robust Operation):
+  Pulse: 55 ms
+  Pause: 2200 ms  (includes +10% safety margin)
+  Cycle: 2255 ms
+  Ratio: 1.00 Drops/Stroke (Measured: 25 drops / 25 pulses)
+>> SETTINGS APPLIED FOR CONTINUOUS MODE.
+==========================================
+
+>>> CYCLE 1 COMPLETE. Cooling down for 30 seconds before next cycle...
+
+>>> STARTING CALIBRATION CYCLE 2 / 5 <<<
+
+=== STARTING FAST AUTO-CALIBRATION (Binary Search) ===
+Total Lifetime Strokes: 148358
+Features: Binary Search, Quick Fail, Stability Check (Max Jitter 5%)
+Press BOOT BUTTON to STOP.
+
+Testing Pulse Width: 55 ms [ETA: Calculating...]
+  [Range 1800-2200] Testing Pause 2000 ms... FAIL (Drops: 25, Jitter: 24.8%) -> High Jitter detected. Trying SHORTER pause.
+  [Range 1800-1995] Testing Pause 1895 ms... FAIL (Drops: 30) -> NOZZLE SATURATION (Splatter)
+  => No valid config found for this pulse width.
+   => Stopping Calibration: Physical limit reached.
+
+==========================================
+       CALIBRATION COMPLETE
+==========================================
+Total Duration: 2 min 2 sec
+FAILURE: No stable configuration found.
+>> Reverting to defaults (Bleeding Mode: 55/2000).
+==========================================
+
+>>> CYCLE 2 COMPLETE. Cooling down for 30 seconds before next cycle...
+
+>>> STARTING CALIBRATION CYCLE 3 / 5 <<<
+
+=== STARTING FAST AUTO-CALIBRATION (Binary Search) ===
+Total Lifetime Strokes: 148418
+Features: Binary Search, Quick Fail, Stability Check (Max Jitter 5%)
+Press BOOT BUTTON to STOP.
+
+Testing Pulse Width: 55 ms [ETA: Calculating...]
+  [Range 1800-2200] Testing Pause 2000 ms... FAIL (Drops: 26, Jitter: 14.3%) -> High Jitter detected. Trying SHORTER pause.
+  [Range 1800-1995] Testing Pause 1895 ms... OK (Drops: 25, Jitter: 0.6%)
+  [Range 1800-1890] Testing Pause 1845 ms... FAIL (Drops: 51) -> NOZZLE SATURATION (Splatter)
+  => Valid Config Found: 55 ms / 1895 ms (Cycle: 1950 ms, Jitter: 0.6%)
+     (NEW BEST CONFIGURATION!)
+     (Learning: Hose elasticity requires ratio ~16.5 [Moving Avg])
+     (Optimization: Next search starts at 250 ms)
+   => Stopping Calibration: Physical limit reached.
+
+==========================================
+       CALIBRATION COMPLETE
+==========================================
+Total Duration: 3 min 0 sec
+Raw Optimal Values (Lab Conditions):
+  Pulse: 55 ms
+  Pause: 1895 ms
+  Cycle: 1950 ms
+  Learned Elasticity Ratio: 16.5
+------------------------------------------
+RECOMMENDED SETTINGS (Robust Operation):
+  Pulse: 55 ms
+  Pause: 2084 ms  (includes +10% safety margin)
+  Cycle: 2139 ms
+  Ratio: 1.00 Drops/Stroke (Measured: 25 drops / 25 pulses)
+>> SETTINGS APPLIED FOR CONTINUOUS MODE.
+==========================================
+
+>>> CYCLE 3 COMPLETE. Cooling down for 30 seconds before next cycle...
+
+>>> STARTING CALIBRATION CYCLE 4 / 5 <<<
+
+=== STARTING FAST AUTO-CALIBRATION (Binary Search) ===
+Total Lifetime Strokes: 148508
+Features: Binary Search, Quick Fail, Stability Check (Max Jitter 5%)
+Press BOOT BUTTON to STOP.
+
+Testing Pulse Width: 55 ms [ETA: Calculating...]
+  [Range 1800-2200] Testing Pause 2000 ms... FAIL (Drops: 30) -> NOZZLE SATURATION (Splatter)
+  => No valid config found for this pulse width.
+   => Stopping Calibration: Physical limit reached.
+
+==========================================
+       CALIBRATION COMPLETE
+==========================================
+Total Duration: 1 min 2 sec
+FAILURE: No stable configuration found.
+>> Reverting to defaults (Bleeding Mode: 55/2000).
+==========================================
+
+>>> CYCLE 4 COMPLETE. Cooling down for 30 seconds before next cycle...
+
+>>> STARTING CALIBRATION CYCLE 5 / 5 <<<
+
+=== STARTING FAST AUTO-CALIBRATION (Binary Search) ===
+Total Lifetime Strokes: 148538
+Features: Binary Search, Quick Fail, Stability Check (Max Jitter 5%)
+Press BOOT BUTTON to STOP.
+
+Testing Pulse Width: 55 ms [ETA: Calculating...]
+  [Range 1800-2200] Testing Pause 2000 ms... FAIL (Drops: 34) -> NOZZLE SATURATION (Splatter)
+  => No valid config found for this pulse width.
+   => Stopping Calibration: Physical limit reached.
+
+==========================================
+       CALIBRATION COMPLETE
+==========================================
+Total Duration: 1 min 2 sec
+FAILURE: No stable configuration found.
+>> Reverting to defaults (Bleeding Mode: 55/2000).
+==========================================
+
+
+##########################################
+       MULTI-CYCLE CALIBRATION REPORT
+##########################################
+Cycle | Pulse | Pause | Ratio | Jitter | Duration
+------+-------+-------+-------+--------+----------
+  1   | 55 ms | 2000 ms |  17.4  |  0.7%  | 2 min 2 s
+  2   | 55 ms | 1895 ms |  16.5  |  0.6%  | 3 min 0 s
+##########################################
+
+FINAL RECOMMENDATION (Simple Average Strategy):
+  Pulse Width:    55 ms (Base Avg: 55 ms)
+  Pause Duration: 2141 ms (Base Avg: 1947 ms + 10% margin)
+  Cycle Time:     2196 ms
+##########################################
+
+
+==========================================
+       REAL-WORLD BURST VALIDATION
+==========================================
+Base Settings: Pulse 55 ms / Pause 2141 ms
+Simulating Riding Conditions: 45 sec pause between bursts.
+
+>>> PHASE 1: DETERMINING OPTIMAL PRIMING PULSE <<<
+(Testing 2-stroke bursts with increasing pulse width until stable)
+
+Testing Priming +0 ms (Pulse: 55 ms)... [1/5] Wait 45s... OK. [2/5] Wait 45s... OK. [3/5] Wait 45s... OK. [4/5] Wait 45s... OK. [5/5] Wait 45s... OK. 
+>> SUCCESS! Optimal Priming is +0 ms.
+
+>>> PHASE 2: FULL SCENARIO VALIDATION (1-5 Strokes) <<<
+Using Priming: +0 ms for first stroke of each burst.
+
+>>> SCENARIO: 1-Stroke Bursts (Target: 1 Drops) <<<
+  Burst 1/10 (1 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 2/10 (1 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 3/10 (1 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 4/10 (1 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 5/10 (1 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 6/10 (1 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 7/10 (1 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 8/10 (1 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 9/10 (1 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 10/10 (1 Strokes)... OK
+>> Scenario 1-Stroke Result: 10/10 Perfect, 10/10 Safe (>=1 Drop) (Ratio: 1.00)
+   (Switching to next scenario...)
+
+>>> SCENARIO: 2-Stroke Bursts (Target: 2 Drops) <<<
+  Burst 1/10 (2 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 2/10 (2 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 3/10 (2 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 4/10 (2 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 5/10 (2 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 6/10 (2 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 7/10 (2 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 8/10 (2 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 9/10 (2 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 10/10 (2 Strokes)... OK
+>> Scenario 2-Stroke Result: 10/10 Perfect, 10/10 Safe (>=1 Drop) (Ratio: 1.00)
+   (Switching to next scenario...)
+
+>>> SCENARIO: 3-Stroke Bursts (Target: 3 Drops) <<<
+  Burst 1/10 (3 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 2/10 (3 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 3/10 (3 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 4/10 (3 Strokes)... FAIL (4 Drops)
+    Waiting 45 sec... Done.
+  Burst 5/10 (3 Strokes)... FAIL (4 Drops)
+    Waiting 45 sec... Done.
+  Burst 6/10 (3 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 7/10 (3 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 8/10 (3 Strokes)... FAIL (5 Drops)
+    Waiting 45 sec... Done.
+  Burst 9/10 (3 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 10/10 (3 Strokes)... FAIL (4 Drops)
+>> Scenario 3-Stroke Result: 6/10 Perfect, 10/10 Safe (>=1 Drop) (Ratio: 1.17)
+   (Switching to next scenario...)
+
+>>> SCENARIO: 4-Stroke Bursts (Target: 4 Drops) <<<
+  Burst 1/10 (4 Strokes)... FAIL (6 Drops)
+    Waiting 45 sec... Done.
+  Burst 2/10 (4 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 3/10 (4 Strokes)... FAIL (5 Drops)
+    Waiting 45 sec... Done.
+  Burst 4/10 (4 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 5/10 (4 Strokes)... FAIL (5 Drops)
+    Waiting 45 sec... Done.
+  Burst 6/10 (4 Strokes)... FAIL (6 Drops)
+    Waiting 45 sec... Done.
+  Burst 7/10 (4 Strokes)... FAIL (5 Drops)
+    Waiting 45 sec... Done.
+  Burst 8/10 (4 Strokes)... FAIL (5 Drops)
+    Waiting 45 sec... Done.
+  Burst 9/10 (4 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 10/10 (4 Strokes)... FAIL (5 Drops)
+>> Scenario 4-Stroke Result: 3/10 Perfect, 10/10 Safe (>=1 Drop) (Ratio: 1.23)
+   (Switching to next scenario...)
+
+>>> SCENARIO: 5-Stroke Bursts (Target: 5 Drops) <<<
+  Burst 1/10 (5 Strokes)... FAIL (8 Drops)
+    Waiting 45 sec... Done.
+  Burst 2/10 (5 Strokes)... FAIL (7 Drops)
+    Waiting 45 sec... Done.
+  Burst 3/10 (5 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 4/10 (5 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 5/10 (5 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 6/10 (5 Strokes)... FAIL (6 Drops)
+    Waiting 45 sec... Done.
+  Burst 7/10 (5 Strokes)... FAIL (7 Drops)
+    Waiting 45 sec... Done.
+  Burst 8/10 (5 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 9/10 (5 Strokes)... OK
+    Waiting 45 sec... Done.
+  Burst 10/10 (5 Strokes)... FAIL (6 Drops)
+>> Scenario 5-Stroke Result: 5/10 Perfect, 10/10 Safe (>=1 Drop) (Ratio: 1.18)
+
+==========================================
+       VALIDATION RESULTS
+==========================================
+Total Bursts: 50
+Successful Bursts: 34 (Perfect 1:1)
+------------------------------------------
+SAFETY CHECK (At least 1 drop per burst):
+  1-Stroke: 10/10 Safe (SAFE)
+  2-Stroke: 10/10 Safe (SAFE)
+  3-Stroke: 10/10 Safe (SAFE)
+  4-Stroke: 10/10 Safe (SAFE)
+  5-Stroke: 10/10 Safe (SAFE)
+------------------------------------------
+OVERALL ACCURACY: 1.15 Drops/Stroke
+STRATEGY: Priming Pulse (+0 ms on first stroke)
+
+>> LONG-DISTANCE RELIABILITY ADVICE:
+   > Single strokes are reliable. You can use any burst size.
+>> RESULT: UNSTABLE. Consider re-calibrating or increasing pulse width.
+==========================================
+
+==========================================
+    TEMPERATURE COMPENSATION GUIDE
+==========================================
+Based on your current calibration (assumed ~20C),
+here are estimated settings for other temperatures:
+
+Temp  | Pulse (ms) | Pause (ms) | Viscosity State
+------+------------+------------+----------------
+  0C |     75     |    4282    | Syrup (Winter)
+ 10C |     65     |    3211    | Thick (Cold)
+ 20C |     55     |    2141    | Current (Ref)
+ 30C |     50     |    1712    | Fluid (Warm)
+ 40C |     45     |    1284    | Thin (Hot)
+==========================================
+NOTE: These are estimates. Re-calibrate if possible when temp changes significantly.
+
+>> FINAL RECOMMENDATION:
+   Use Pulse: 55 ms / Pause: 2141 ms
+   *IMPORTANT*: For bursts after long pauses (>45s), add +0 ms to the first pulse (Priming).
+==========================================
+>> DROP DETECTED! Total: 527
